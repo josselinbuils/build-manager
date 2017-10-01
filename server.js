@@ -30,8 +30,8 @@ function buildService(name) {
   });
 
   const options = {
-    out: 'stdout',
-    err: 'stderr',
+    out: console.info,
+    err: console.error,
     exit: code => `exited with code ${code}`
   };
 

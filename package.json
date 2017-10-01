@@ -1,0 +1,22 @@
+{
+  "name": "build-manager",
+  "version": "0.0.1",
+  "description": "Github hook which automatically deploys docker services",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josselinbuils/build-manager.git"
+  },
+  "author": "Josselin Buils",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josselinbuils/build-manager/issues"
+  },
+  "homepage": "https://github.com/josselinbuils/build-manager#readme",
+  "dependencies": {
+    "githubhook": "^1.9.1"
+  }
+}

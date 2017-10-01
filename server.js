@@ -1,7 +1,7 @@
-const {spawn} = require('child_process');
 const githubhook = require('githubhook');
+const SSH = require('simple-ssh');
 
-const repositories = ['pathFinding', 'portfolio', 'reverseProxy', 'teravia'];
+const repositories = ['pathFinding', 'portfolio', 'reverseProxy', 'teravia', 'test'];
 
 const handler = githubhook({
   path: '/webhook',
@@ -22,10 +22,18 @@ function getArg(name) {
 }
 
 function buildService(name) {
-  const child = spawn('docker-compose', ['build', '--no-cache', name]);
-  child.stdout.pipe(process.stdout);
-  child.stderr.pipe(process.stderr);
-  child.on('close', code => console.info(`child process exited with code ${code}`));
+  const ssh = new SSH({
+    host: 'josselinbuils.me',
+    user: 'root',
+    pass: getArg('password')
+  });
+
+  ssh.on('error', (error) => {
+    console.error(error);
+    ssh.end();
+  });
+
+  ssh.exec('echo $PATH ' + name, {
+    out: process.stdout
+  }).start();
 }
-
-

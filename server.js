@@ -17,10 +17,6 @@ handler.on('push', (repos, ref) => {
 
 handler.listen();
 
-function getArg(name) {
-  return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
-}
-
 function buildService(name) {
   const ssh = new SSH({
     host: 'josselinbuils.me',
@@ -33,7 +29,19 @@ function buildService(name) {
     ssh.end();
   });
 
-  ssh.exec(`cd /home/ubuntu/docker && docker-compose build --no-cache portfolio && docker-compose up -d`, {
-    out: console.info
-  }).start();
+  const options = {
+    out: 'stdout',
+    err: 'stderr',
+    exit: code => `exited with code ${code}`
+  };
+
+  ssh
+    .exec('cd /home/ubuntu/docker', options)
+    .exec('docker-compose build --no-cache reverseproxy', options)
+    .exec('docker-compose up -d', options)
+    .start();
+}
+
+function getArg(name) {
+  return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
 }

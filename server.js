@@ -7,7 +7,7 @@ const handler = githubhook(config.hook);
 
 handler.on('push', (repos, ref) => {
   if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
-    const command = 'cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d';
+    const command = `cd /home/ubuntu/docker && docker-compose build --no-cache ${repos.toLowerCase()} && docker-compose up -d`;
     ssh(command, config.ssh).pipe(process.stdout);
   }
 });

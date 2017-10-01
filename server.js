@@ -30,12 +30,16 @@ function buildService(name) {
   });
 
   ssh.exec('cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d', {
-    out: console.info,
-    err: console.error,
+    out: log.bind(null, 'info'),
+    err: log.bind(null, 'error'),
     exit: code => `exited with code ${code}`
   }).start();
 }
 
 function getArg(name) {
   return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
+}
+
+function log(level, str) {
+  console[level](str.replace(/\n/g, ''));
 }

@@ -29,17 +29,11 @@ function buildService(name) {
     ssh.end();
   });
 
-  const options = {
+  ssh.exec('cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d', {
     out: console.info,
     err: console.error,
     exit: code => `exited with code ${code}`
-  };
-
-  ssh
-    .exec('cd /home/ubuntu/docker', options)
-    .exec('docker-compose build --no-cache reverseproxy', options)
-    .exec('docker-compose up -d', options)
-    .start();
+  }).start();
 }
 
 function getArg(name) {

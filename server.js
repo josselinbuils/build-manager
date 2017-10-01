@@ -1,18 +1,12 @@
-const http = require('http');
-const createHandler = require('github-webhook-handler');
-const handler = createHandler({path: '/webhook'});
+const githubhook = require('githubhook');
+const handler = githubhook({port: 8090, secret: getArg('secret')});
 
-http.createServer((req, res) => {
-    handler(req, res, () => {
-        res.statusCode = 404;
-        res.end('Not Found')
-    });
-}).listen(8090);
-
-handler.on('error', err => {
-    console.error('Error:', err.message);
+handler.on('push', (ref, data) => {
+    console.log('hello', ref, data);
 });
 
-handler.on('push', event => {
-    console.log('Received a push event for %s to %s', event.payload.repository.name, event.payload.ref);
-});
+handler.listen();
+
+function getArg(name) {
+    return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
+}

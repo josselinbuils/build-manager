@@ -33,7 +33,7 @@ function buildService(name) {
     ssh.end();
   });
 
-  ssh.exec('echo $PATH ' + name, {
+  ssh.exec(`cd /home/ubuntu/docker && docker-compose build --no-cache portfolio && docker-compose up -d`, {
     out: console.info
   }).start();
 }

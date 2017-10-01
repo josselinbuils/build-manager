@@ -2,7 +2,7 @@ const githubhook = require('githubhook');
 const {validate} = require('jsonschema');
 const ssh = require('ssh-exec');
 
-const config = validate(require('./config.json'), require('./config.schema.json'), {throwError: true});
+const config = validate(require('./config.json'), require('./config.schema.json'), {throwError: true}).instance;
 const handler = githubhook(config.hook);
 
 handler.on('push', (repos, ref) => {

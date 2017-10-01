@@ -18,6 +18,6 @@
   "homepage": "https://github.com/josselinbuils/build-manager#readme",
   "dependencies": {
     "githubhook": "^1.9.1",
-    "simple-ssh": "^1.0.0"
+    "ssh-exec": "^2.0.0"
   }
 }

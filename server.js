@@ -1,5 +1,5 @@
 const githubhook = require('githubhook');
-const SSH = require('simple-ssh');
+const ssh = require('ssh-exec');
 
 const repositories = ['pathFinding', 'portfolio', 'reverseProxy', 'teravia', 'test'];
 
@@ -18,28 +18,13 @@ handler.on('push', (repos, ref) => {
 handler.listen();
 
 function buildService(name) {
-  const ssh = new SSH({
+  ssh('cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d', {
     host: 'josselinbuils.me',
     user: 'root',
-    pass: getArg('password')
-  });
-
-  ssh.on('error', (error) => {
-    console.error(error);
-    ssh.end();
-  });
-
-  ssh.exec('cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d', {
-    out: log.bind(null, 'info'),
-    err: log.bind(null, 'error'),
-    exit: code => `exited with code ${code}`
-  }).start();
+    password: getArg('password')
+  }).pipe(process.stdout)
 }
 
 function getArg(name) {
   return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
-}
-
-function log(level, str) {
-  console[level](str.replace(/\n/g, ''));
 }

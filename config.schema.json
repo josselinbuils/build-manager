@@ -1,0 +1,29 @@
+{
+  "id": "/Config",
+  "type": "object",
+  "properties": {
+    "hook": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string"},
+        "port": {"type": "number"},
+        "secret": {"type": "string"}
+      },
+      "required": ["secret"]
+    },
+    "repositories": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "ssh": {
+      "type": "object",
+      "properties": {
+        "host": {"type": "string"},
+        "user": {"type": "string"},
+        "password": {"type": "string"}
+      },
+      "required": ["host", "user", "password"]
+    }
+  },
+  "required": ["hook", "repositories", "ssh"]
+}

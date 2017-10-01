@@ -18,6 +18,7 @@
   "homepage": "https://github.com/josselinbuils/build-manager#readme",
   "dependencies": {
     "githubhook": "^1.9.1",
+    "jsonschema": "^1.2.0",
     "ssh-exec": "^2.0.0"
   }
 }

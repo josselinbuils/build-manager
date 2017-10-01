@@ -1,30 +1,15 @@
 const githubhook = require('githubhook');
+const {validate} = require('jsonschema');
 const ssh = require('ssh-exec');
 
-const repositories = ['pathFinding', 'portfolio', 'reverseProxy', 'teravia', 'test'];
-
-const handler = githubhook({
-  path: '/webhook',
-  port: 8090,
-  secret: getArg('secret')
-});
+const config = validate(require('./config.json'), require('./config.schema.json'), {throwError: true});
+const handler = githubhook(config.hook);
 
 handler.on('push', (repos, ref) => {
-  if (repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
-    buildService(repos.toLowerCase());
+  if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
+    const command = 'cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d';
+    ssh(command, config.ssh).pipe(process.stdout);
   }
 });
 
 handler.listen();
-
-function buildService(name) {
-  ssh('cd /home/ubuntu/docker && docker-compose build --no-cache reverseproxy && docker-compose up -d', {
-    host: 'josselinbuils.me',
-    user: 'root',
-    password: getArg('password')
-  }).pipe(process.stdout)
-}
-
-function getArg(name) {
-  return (process.argv.slice(2).find(val => val.indexOf(name + '=') === 0) || '').slice(name.length + 1);
-}

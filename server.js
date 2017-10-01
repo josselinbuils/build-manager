@@ -34,6 +34,6 @@ function buildService(name) {
   });
 
   ssh.exec('echo $PATH ' + name, {
-    out: process.stdout
+    out: console.info
   }).start();
 }

@@ -3,17 +3,18 @@ const {validate} = require('jsonschema');
 const ssh = require('ssh-exec');
 
 const config = validate(require('./config.json'), require('./config.schema.json'), {throwError: true}).instance;
-const handler = githubhook(config.hook);
 
-handler.on('push', (repos, ref) => {
-  if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
-    try {
+try {
+  const handler = githubhook(config.hook);
+
+  handler.on('push', (repos, ref) => {
+    if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
       const command = `cd /home/ubuntu/docker && docker-compose build --no-cache --force-rm ${repos.toLowerCase()} && docker-compose up -d && docker system prune -f`;
       ssh(command, config.ssh).pipe(process.stdout);
-    } catch (error) {
-      console.error(`Unable to build ${repos}: ${error.stack}`);
     }
-  }
-});
+  });
 
-handler.listen();
+  handler.listen();
+} catch (error) {
+  console.error(`An error happen during build: ${error.stack}`);
+}

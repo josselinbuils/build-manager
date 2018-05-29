@@ -9,7 +9,7 @@ const handler = githubhook(config.hook);
 handler.on('push', (repos, ref) => {
   if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
     console.log(`Build ${repos}...`);
-    const command = `cd /home/ubuntu/docker && docker-compose build --no-cache ${repos.toLowerCase()} && docker-compose up -d && docker system prune -f`;
+    const command = `cd /home/ubuntu/docker && docker-compose build --no-cache ${repos.replace(/-/g, '').toLowerCase()} && docker-compose up -d && docker system prune -f`;
     ssh(command, config.ssh).pipe(process.stdout);
   }
 });

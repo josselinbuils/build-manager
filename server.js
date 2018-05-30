@@ -13,9 +13,9 @@ handler.on('push', (repos, ref) => {
     const service = `docker_${repos.replace(/-/g, '').toLowerCase()}_1`;
     // const command = `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
     const command = `docker exec -it fsdfds${service} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${service}`;
-    ssh(command, config.ssh, (error) => {
+    ssh(command, config.ssh, (error, stdout, stderr) => {
       if (error) {
-        console.log(`SSH error:\n${error.stack}`);
+        console.log(`SSH error:\n${stderr}`)
       }
     });
   }

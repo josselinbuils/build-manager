@@ -1,9 +1,11 @@
 const githubhook = require('githubhook');
-const {validate} = require('jsonschema');
+const { validate } = require('jsonschema');
 const ssh = require('ssh-exec');
 
 // noinspection JSFileReferences
-const config = validate(require('./config.json'), require('./config.schema.json'), {throwError: true}).instance;
+const config = validate(require('./config.json'), require('./config.schema.json'), { throwError: true }).instance;
+
+process.on('uncaughtException', error => console.error(error));
 
 const handler = githubhook(config.hook);
 

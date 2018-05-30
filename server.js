@@ -19,7 +19,7 @@ handler.on('push', (repos, ref) => {
     const service = repos.replace(/-/g, '').toLowerCase();
     const container = `docker_${service}_1`;
     const command = mode === Mode.Update
-      ? `docker exec -it ${container} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${container}`
+      ? `docker exec ${container} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${container}`
       : `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
 
     ssh(command, config.ssh, (error, stdout, stderr) => {

@@ -10,25 +10,34 @@ const Mode = {
   Clean: 'clean',
   Update: 'update',
 };
-const mode = Mode.Update;
+const buildMode = Mode.Update;
+
+function build(repos, mode) {
+  console.log(`Build ${repos} using ${mode} mode...`);
+
+  const service = repos.replace(/-/g, '').toLowerCase();
+  const container = `docker_${service}_1`;
+  const command = mode === Mode.Update
+    ? `docker exec ${container} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${container}`
+    : `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
+
+  ssh(command, config.ssh, (error, stdout, stderr) => {
+    if (error) {
+      console.error(stderr);
+
+      if (stderr.includes('not running')) {
+        console.log('Docker container seems to be stopped, retry in clean mode');
+        build(repos, Mode.Clean);
+      }
+    } else {
+      console.log('Success');
+    }
+  }).pipe(process.stdout);
+}
 
 handler.on('push', (repos, ref) => {
   if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
-    console.log(`Build ${repos} using ${mode} mode...`);
-
-    const service = repos.replace(/-/g, '').toLowerCase();
-    const container = `docker_${service}_1`;
-    const command = mode === Mode.Update
-      ? `docker exec ${container} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${container}`
-      : `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
-
-    ssh(command, config.ssh, (error, stdout, stderr) => {
-      if (error) {
-        console.error(stderr);
-      } else {
-        console.log('Success');
-      }
-    }).pipe(process.stdout);
+    build(repos, buildMode);
   }
 });
 

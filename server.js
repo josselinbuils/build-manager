@@ -15,7 +15,7 @@ handler.on('push', (repos, ref) => {
     const command = `docker exec -it fsdfds${service} bash -c "git checkout . && git pull && npm i && exit" && docker restart ${service}`;
     ssh(command, config.ssh, (error, stdout, stderr) => {
       if (error) {
-        console.log(`SSH error:\n${stderr}`)
+        console.error(`SSH error: ${stderr}`)
       }
     });
   }

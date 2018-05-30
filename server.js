@@ -25,6 +25,8 @@ handler.on('push', (repos, ref) => {
     ssh(command, config.ssh, (error, stdout, stderr) => {
       if (error) {
         console.error(stderr);
+      } else {
+        console.log('Success');
       }
     }).pipe(process.stdout);
   }

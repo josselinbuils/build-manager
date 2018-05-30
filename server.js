@@ -26,7 +26,7 @@ handler.on('push', (repos, ref) => {
       if (error) {
         console.error(stderr);
       }
-    });
+    }).pipe(process.stdout);
   }
 });
 

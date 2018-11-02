@@ -18,7 +18,7 @@ function build(repos, mode) {
   const service = repos.replace(/-/g, '').toLowerCase();
   const container = `docker_${service}_1`;
   const command = mode === Mode.Update
-    ? `docker exec ${container} bash -c "git checkout . && git pull && npm prune && npm i --no-save && exit" && docker restart ${container}`
+    ? `docker exec ${container} bash -c "git checkout . && git pull && npm prune && npm i --no-save && ([[ $(cat package.json | grep '"build":') ]] && npm run build) && exit" && docker restart ${container}`
     : `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
 
   console.log(`-> ${command}`);

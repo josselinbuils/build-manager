@@ -10,7 +10,7 @@ const Mode = {
   Clean: 'clean',
   Update: 'update',
 };
-const buildMode = Mode.Update;
+const buildMode = Mode.Clean;
 
 function build(repos, mode) {
   console.log(`Builds ${repos} using ${mode} mode...`);

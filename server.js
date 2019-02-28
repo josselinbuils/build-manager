@@ -2,24 +2,56 @@ const githubhook = require('githubhook');
 const { validate } = require('jsonschema');
 const ssh = require('ssh-exec');
 
-// noinspection JSFileReferences
-const config = validate(require('./config.json'), require('./config.schema.json'), { throwError: true }).instance;
-const handler = githubhook(config.hook);
+const configSchema = require('./config.schema.json');
+const rawConfig = require('./config.json');
 
 const Mode = {
   Clean: 'clean',
   Update: 'update',
 };
-const buildMode = Mode.Update;
+const DEFAULT_BUILD_MODE = Mode.Update;
+
+const config = validate(rawConfig, configSchema, { throwError: true }).instance;
+const handler = githubhook(config.hook);
 
 function build(repos, mode) {
   console.log(`Builds ${repos} using ${mode} mode...`);
 
   const service = repos.replace(/-/g, '').toLowerCase();
   const container = `docker_${service}_1`;
-  const command = mode === Mode.Update
-    ? `docker exec ${container} bash -c 'git checkout . && git pull && npm prune --production && npm i --production --no-save && ([[ $(npm run | grep build) ]] && npm run build) && exit' && docker restart ${container}`
-    : `cd /home/ubuntu/docker && docker-compose build --no-cache ${service} && docker-compose up -d && docker system prune -f`;
+  let commands;
+
+  switch (mode) {
+    case Mode.Clean:
+      commands = [
+        'cd /home/ubuntu/docker',
+        `docker-compose build --no-cache ${service}`,
+        'docker-compose up -d',
+        'docker system prune -f',
+      ];
+      break;
+
+    case Mode.Update:
+      const dockerCommands = [
+        'git checkout .',
+        'git pull',
+        'yarn install --frozen-lockfile',
+        'npm prune --production',
+        'npm i --production --no-save',
+        '([[ $(npm run | grep build) ]] && npm run build)',
+        'exit',
+      ];
+      commands = [
+        `docker exec ${container} bash -c '${dockerCommands.join(' && ')}'`,
+        `docker restart ${container}`,
+      ];
+      break;
+
+    default:
+      console.error(`Unknown mode: ${mode}`);
+  }
+
+  const command = commands.join(' && ');
 
   console.log(`-> ${command}`);
 
@@ -39,7 +71,7 @@ function build(repos, mode) {
 
 handler.on('push', (repos, ref) => {
   if (config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
-    build(repos, buildMode);
+    build(repos, DEFAULT_BUILD_MODE);
   }
 });
 

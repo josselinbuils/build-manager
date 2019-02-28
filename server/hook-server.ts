@@ -11,9 +11,9 @@ enum Mode {
 const DEFAULT_BUILD_MODE = Mode.Update;
 
 export class HookServer {
-  private server;
+  private readonly server;
 
-  constructor(private config: Config) {
+  constructor(private readonly config: Config) {
     this.server = githubhook({
       ...config.hook,
       logger: Logger,

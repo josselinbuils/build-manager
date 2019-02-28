@@ -11,7 +11,7 @@ const CLIENT_PATH = path.join(process.cwd(), PUBLIC_DIR);
 const HTTP_PREFIX = process.env.HTTP_PREFIX !== undefined ? process.env.HTTP_PREFIX : HTTP_DEFAULT_PREFIX;
 
 export class HttpServer {
-  private server = express();
+  private readonly server = express();
 
   async start(port: number): Promise<void> {
     return new Promise<void>(resolve => {

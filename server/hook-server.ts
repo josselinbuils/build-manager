@@ -21,7 +21,7 @@ export class HookServer {
   }
 
   build(repos: string, mode: Mode): void {
-    console.log(`Builds ${repos} using ${mode} mode...`);
+    Logger.info(`Builds ${repos} using ${mode} mode...`);
 
     const service = repos.replace(/-/g, '').toLowerCase();
     const container = `docker_${service}_1`;
@@ -57,18 +57,18 @@ export class HookServer {
 
     const command = commands.join(' && ');
 
-    console.log(`-> ${command}`);
+    Logger.info(`-> ${command}`);
 
     ssh(command, this.config.ssh, (error, stdout, stderr) => {
       if (error) {
         console.error(stderr);
 
         if (stderr.includes('not running')) {
-          console.log('Docker container seems to be stopped, retry in clean mode');
+          Logger.info('Docker container seems to be stopped, retry in clean mode');
           this.build(repos, Mode.Clean);
         }
       } else {
-        console.log('Success');
+        Logger.info('Success');
       }
     }).pipe(process.stdout);
   }

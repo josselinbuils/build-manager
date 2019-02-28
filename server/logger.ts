@@ -1,14 +1,18 @@
 export class Logger {
 
   static error(str: string): void {
-    this.log(LogLevel.Error, str);
+    this.internalLog(LogLevel.Error, str);
   }
 
   static info(str: string): void {
-    this.log(LogLevel.Info, str);
+    this.internalLog(LogLevel.Info, str);
   }
 
-  private static log(level: LogLevel, str: string): void {
+  static log(str: string): void {
+    this.info(str);
+  }
+
+  private static internalLog(level: LogLevel, str: string): void {
     let prefix = `\x1b[0m[${new Date().toDateString()} ${new Date().toLocaleTimeString()}] `;
 
     switch (level) {

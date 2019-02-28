@@ -7,13 +7,17 @@ enum Mode {
   Clean = 'clean',
   Update = 'update',
 }
+
 const DEFAULT_BUILD_MODE = Mode.Update;
 
 export class HookServer {
   private server;
 
   constructor(private config: Config) {
-    this.server = githubhook(config);
+    this.server = githubhook({
+      ...config.hook,
+      logger: Logger,
+    });
   }
 
   build(repos: string, mode: Mode): void {
@@ -71,17 +75,12 @@ export class HookServer {
 
   async start(): Promise<void> {
     return new Promise<void>(resolve => {
-
       this.server.on('push', (repos, ref) => {
         if (this.config.repositories.indexOf(repos) !== -1 && ref === 'refs/heads/master') {
           this.build(repos, DEFAULT_BUILD_MODE);
         }
       });
-
-      this.server.listen(() => {
-        Logger.info(`Hook server is listening on port ${this.config.hook.port}`);
-        resolve();
-      });
+      this.server.listen(resolve);
     });
   }
 }

@@ -2,7 +2,7 @@ const githubhook = require('githubhook');
 const { validate } = require('jsonschema');
 const ssh = require('ssh-exec');
 
-const configSchema = require('./config.schema.json');
+const configSchema = require('./server/config.schema.json');
 const rawConfig = require('./config.json');
 
 const Mode = {

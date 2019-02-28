@@ -15,11 +15,11 @@
   },
   "homepage": "https://github.com/josselinbuils/build-manager#readme",
   "scripts": {
+    "build-client": "react-scripts build",
+    "start": "yarn build-client && yarn start-server",
+    "start-client": "react-scripts start",
     "start-server": "node server.js",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test"
   },
   "eslintConfig": {
     "extends": "react-app"

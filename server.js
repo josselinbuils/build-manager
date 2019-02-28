@@ -35,10 +35,8 @@ function build(repos, mode) {
       const dockerCommands = [
         'git checkout .',
         'git pull',
-        'yarn install --frozen-lockfile',
-        'npm prune --production',
-        'npm i --production --no-save',
-        '([[ $(npm run | grep build) ]] && npm run build)',
+        'yarn install --production --frozen-lockfile',
+        '([[ $(npm run | grep "^ *build *$") ]] && yarn build)',
         'exit',
       ];
       commands = [

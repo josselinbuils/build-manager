@@ -1,5 +1,5 @@
 FROM node:8
 COPY . build-manager
 WORKDIR build-manager
-RUN npm install
-CMD ["npm", "start-server"]
+RUN yarn install --production
+CMD ["yarn", "start"]

@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:10
 COPY . build-manager
 WORKDIR build-manager
 RUN yarn install --production && \

@@ -52,7 +52,7 @@ export class HookServer {
         break;
 
       default:
-        console.error(`Unknown mode: ${mode}`);
+        Logger.error(`Unknown mode: ${mode}`);
     }
 
     const command = commands.join(' && ');
@@ -61,7 +61,7 @@ export class HookServer {
 
     ssh(command, this.config.ssh, (error, stdout, stderr) => {
       if (error) {
-        console.error(stderr);
+        Logger.error(stderr);
 
         if (stderr.includes('not running')) {
           Logger.info('Docker container seems to be stopped, retry in clean mode');

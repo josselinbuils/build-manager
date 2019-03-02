@@ -30,9 +30,16 @@ async function start(): Promise<void> {
     if (data instanceof Buffer) {
       data = data.toString('utf8');
     }
-    if (typeof data !== 'string' || data.length === 0) {
+    if (typeof data !== 'string') {
       return;
     }
+
+    data = data.replace(/^\s+|\s+$/g, '');
+
+    if (typeof data !== 'string') {
+      return;
+    }
+
     const log = { level, data, time: Date.now() };
     Logger.internalLog(level, data);
     logs.push(log);

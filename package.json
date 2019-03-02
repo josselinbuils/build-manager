@@ -1,19 +1,7 @@
 {
   "name": "build-manager",
   "version": "0.1.0",
-  "private": true,
-  "description": "Github hook which automatically deploys docker services",
-  "main": "server.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/josselinbuils/build-manager.git"
-  },
-  "author": "Josselin Buils",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/josselinbuils/build-manager/issues"
-  },
-  "homepage": "https://github.com/josselinbuils/build-manager#readme",
   "scripts": {
     "build-client": "react-scripts build",
     "lint": "yarn lint-client && yarn lint-server",

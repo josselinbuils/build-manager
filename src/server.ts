@@ -34,7 +34,7 @@ async function start(): Promise<void> {
       return;
     }
 
-    data = data.replace(/^\s+|\s+$/g, '');
+    data = data.replace(/\s+$/g, '');
 
     if (typeof data !== 'string') {
       return;

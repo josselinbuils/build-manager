@@ -26,7 +26,13 @@ async function start(): Promise<void> {
 
   wsConnectionObservable.subscribe(send => send(logs));
 
-  const dispatchLog = (level: LogLevel, data: string) => {
+  const dispatchLog = (level: LogLevel, data: string | Buffer) => {
+    if (data instanceof Buffer) {
+      data = data.toString('utf8');
+    }
+    if (typeof data !== 'string' || data.length === 0) {
+      return;
+    }
     const log = { level, data, time: Date.now() };
     Logger.internalLog(level, data);
     logs.push(log);

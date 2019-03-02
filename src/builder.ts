@@ -49,10 +49,10 @@ export class Builder {
     const subject = new BehaviorSubject<string>(`-> ${command}`);
     const stream = ssh(command, this.config);
 
-    stream.on('warn', subject.next);
-    stream.on('data', subject.next);
-    stream.on('error', subject.error);
-    stream.on('end', subject.complete);
+    stream.on('warn', data => subject.next(data));
+    stream.on('data', data => subject.next(data));
+    stream.on('error', error => subject.error(error));
+    stream.on('end', () => subject.complete());
 
     return subject;
   }

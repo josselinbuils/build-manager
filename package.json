@@ -1,7 +1,7 @@
 {
   "name": "build-manager",
   "version": "0.1.0",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "build-client": "react-scripts build",
     "lint": "yarn lint-client && yarn lint-server",

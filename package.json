@@ -2,6 +2,7 @@
   "name": "build-manager",
   "version": "0.1.0",
   "license": "MIT",
+  "homepage" : "https://josselinbuils.me/build-manager",
   "scripts": {
     "build-client": "react-scripts build",
     "lint": "yarn lint-client && yarn lint-server",

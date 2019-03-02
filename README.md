@@ -1,5 +1,5 @@
 # build-manager
-Github hook which automatically deploys docker services
+Github hook which automatically deploys docker services.
 
 ### Update
 ``` bash

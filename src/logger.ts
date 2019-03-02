@@ -12,7 +12,7 @@ export class Logger {
     this.info(str);
   }
 
-  private static internalLog(level: LogLevel, str: string): void {
+  static internalLog(level: LogLevel, str: string): void {
     let prefix = `\x1b[0m[${new Date().toDateString()} ${new Date().toLocaleTimeString()}] `;
 
     switch (level) {
@@ -30,7 +30,7 @@ export class Logger {
   }
 }
 
-enum LogLevel {
+export enum LogLevel {
   Error = 'ERROR',
   Info = 'INFO',
 }

@@ -2,47 +2,21 @@
   "name": "build-manager",
   "version": "0.1.0",
   "license": "MIT",
-  "homepage" : "https://josselinbuils.me/build-manager",
   "scripts": {
-    "build-client": "react-scripts build",
-    "lint": "yarn lint-client && yarn lint-server",
-    "lint-client": "tslint -c src/tslint.json -p tsconfig.json src/**/*.tsx",
-    "lint-server": "tslint -c server/tslint.json -p server/tsconfig.json server/**/*.ts",
-    "start-client": "react-scripts start",
-    "start-server": "ts-node --project server/tsconfig.json server/server.ts",
-    "test": "react-scripts test"
+    "lint": "tslint -p tsconfig.json src/**/*.ts",
+    "start": "ts-node --project tsconfig.json src/server.ts"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
   "dependencies": {
-    "@types/jest": "^24.0.9",
     "@types/node": "^11.9.6",
-    "@types/react": "^16.8.6",
-    "@types/react-dom": "^16.8.2",
-    "express": "^4.16.4",
-    "express-content-length-validator": "^1.0.0",
-    "fs-extra": "^7.0.1",
     "githubhook": "^1.9.1",
-    "helmet": "^3.15.1",
     "jsonschema": "^1.2.0",
-    "react": "^16.8.3",
-    "react-dom": "^16.8.3",
-    "react-scripts": "2.1.5",
-    "serve-static": "^1.13.2",
+    "rxjs": "^6.4.0",
     "ssh-exec": "^2.0.0",
     "ts-node": "^8.0.2",
     "typescript": "^3.3.3333",
     "ws": "^6.1.4"
   },
   "devDependencies": {
-    "tslint": "^5.13.0",
-    "tslint-react": "^3.6.0"
+    "tslint": "^5.13.0"
   }
 }

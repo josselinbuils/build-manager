@@ -37,6 +37,7 @@
       "check-multiline-start"
     ],
     "label-position": true,
+    "match-default-export-name": true,
     "max-classes-per-file": [
       true,
       1
@@ -60,12 +61,12 @@
           "public-instance-field",
           "protected-instance-field",
           "private-instance-field",
-          "public-constructor",
-          "protected-constructor",
-          "private-constructor",
           "public-static-method",
           "protected-static-method",
           "private-static-method",
+          "public-constructor",
+          "protected-constructor",
+          "private-constructor",
           "public-instance-method",
           "protected-instance-method",
           "private-instance-method"
@@ -79,14 +80,15 @@
     "no-consecutive-blank-lines": true,
     "no-construct": true,
     "no-debugger": true,
-    "no-duplicate-imports": true,
+    "no-default-export": true,
     "no-duplicate-super": true,
     "no-duplicate-switch-case": true,
     "no-empty": false,
     "no-empty-interface": true,
     "no-eval": true,
+    "no-floating-promises": true,
     "no-for-in-array": true,
-    "no-implicit-dependencies": true,
+    "no-implicit-dependencies": [true, ["@portfolio"]],
     "no-inferrable-types": false,
     "no-inferred-empty-object-type": true,
     "no-irregular-whitespace": true,
@@ -150,6 +152,11 @@
     ],
     "prefer-template": true,
     "promise-function-async": true,
+    "quotemark": [
+      true,
+      "single",
+      "avoid-template"
+    ],
     "radix": true,
     "restrict-plus-operands": true,
     "semicolon": [

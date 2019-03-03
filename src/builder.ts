@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import * as ssh from 'ssh-exec';
+import { Client } from 'ssh2';
 
 import { SshConfig } from './config';
 
@@ -47,13 +47,28 @@ export class Builder {
 
     const command = commands.join(' && ');
     const subject = new BehaviorSubject<string>(`-> ${command}`);
-    const stream = ssh(command, this.config);
+    const ssh = new Client();
 
-    stream.pipe(process.stdout);
-    stream.on('warn', data => subject.next(data));
-    stream.on('data', data => subject.next(data));
-    stream.on('error', error => subject.error(error));
-    stream.on('end', () => subject.complete());
+    ssh.on('ready', () => {
+      ssh.exec(command, { pty: true }, (error, stream) => {
+        if (error) {
+          subject.error(error);
+          return;
+        }
+        stream
+          .on('close', code => {
+            if (code !== 0) {
+              subject.error(new Error(`Non-zero exit code: ${code}`));
+            } else {
+              subject.complete();
+            }
+            ssh.end();
+          })
+          .on('data', data => subject.next(data))
+          .stderr
+          .on('data', data => subject.next(data));
+      });
+    }).connect(this.config);
 
     return subject;
   }

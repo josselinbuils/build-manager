@@ -36,7 +36,7 @@ export class Builder {
           'exit',
         ];
         commands = [
-          `docker exec ${container} bash -c '${dockerCommands.join(' && ')}'`,
+          `docker exec -t ${container} bash -c '${dockerCommands.join(' && ')}'`,
           `docker restart ${container}`,
         ];
         break;
@@ -50,11 +50,12 @@ export class Builder {
     const ssh = new Client();
 
     ssh.on('ready', () => {
-      ssh.exec(command, { pty: true }, (error, stream) => {
+      ssh.exec(command, (error, stream) => {
         if (error) {
           subject.error(error);
           return;
         }
+        stream.pipe(process.stdout);
         stream
           .on('close', code => {
             if (code !== 0) {

@@ -1,14 +1,16 @@
 import { validate } from 'jsonschema';
 
+import * as rawConfig from '../config.json';
+import * as configSchema from '../config.schema.json';
+
 import { Builder } from './builder';
 import { Config } from './config';
-import { LOG_CLEANING_INTERVAL, LOG_LIFETIME, PORT_WS } from './constants';
 import { HookServer } from './hook-server';
 import { Logger, LogLevel } from './logger';
 import { WsServer } from './ws-server';
 
-const configSchema = require('../config.schema.json');
-const rawConfig = require('../config.json');
+const PORT_WS = 9001;
+
 const config = validate(rawConfig, configSchema, { throwError: true }).instance as Config;
 
 async function start(): Promise<void> {
@@ -30,24 +32,22 @@ async function start(): Promise<void> {
     if (data instanceof Buffer) {
       data = data.toString('utf8');
     }
+
     if (typeof data !== 'string') {
       return;
     }
 
     data = data.replace(/\s+$/g, '');
 
-    if (typeof data !== 'string') {
-      return;
-    }
-
     const log = { level, data, time: Date.now() };
-    Logger.internalLog(level, data);
     logs.push(log);
     wsServer.send([log]);
   };
 
   hookObservable.subscribe(repos => {
     Logger.info(`Builds ${repos}`);
+
+    logs = [];
 
     builder
       .build(repos)
@@ -57,11 +57,6 @@ async function start(): Promise<void> {
         next: data => dispatchLog(LogLevel.Info, data),
       });
   });
-
-  setInterval(() => {
-    const now = Date.now();
-    logs = logs.filter(log => (now - log.time) < LOG_LIFETIME);
-  }, LOG_CLEANING_INTERVAL);
 
   Logger.info('Build manager server successfully started');
 }

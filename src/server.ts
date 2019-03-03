@@ -57,7 +57,7 @@ ${color.bold(`⚙️ Builds ${repos}`)}`);
         .build(repos)
         .subscribe({
           complete: () => {
-            dispatchLog(LogLevel.Info, color.green('\n✔️ Success'));
+            dispatchLog(LogLevel.Info, color.green('\n✔ Success'));
             resolve();
           },
           error: error => {

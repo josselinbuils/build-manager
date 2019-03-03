@@ -17,29 +17,44 @@ export class Builder {
   build(repos: string, mode: BuildMode = BuildMode.Update): Observable<string> {
     const service = repos.replace(/-/g, '').toLowerCase();
     const container = `docker_${service}_1`;
-    let commands;
+    let steps: { name: string; command: string }[];
 
     switch (mode) {
       case BuildMode.Clean:
-        commands = [
-          'cd /home/ubuntu/docker',
-          `docker-compose build --no-cache ${service}`,
-          'docker-compose up -d',
-          'docker system prune -f',
+        steps = [
+          {
+            name: 'Build image',
+            command: `cd /home/ubuntu/docker && docker-compose build --no-cache ${service}`,
+          },
+          {
+            name: 'Recreate container',
+            command: 'docker-compose up -d',
+          },
+          {
+            name: 'Clean',
+            command: 'docker system prune -f',
+          },
         ];
         break;
 
       case BuildMode.Update:
-        const dockerCommands = [
-          'git checkout .',
-          'git pull',
-          'yarn install --production --frozen-lockfile',
-          '([[ $(npm run | grep "^ *build *$") ]] && yarn build)',
-          'exit',
-        ];
-        commands = [
-          `docker exec -t ${container} bash -c '${dockerCommands.join(' && ')}'`,
-          `docker restart ${container}`,
+        steps = [
+          {
+            name: 'Update source code',
+            command: `docker exec -t ${container} bash -c 'git checkout . && git pull'`,
+          },
+          {
+            name: 'Install dependencies',
+            command: `docker exec -t ${container} bash -c 'yarn install --production --frozen-lockfile'`,
+          },
+          {
+            name: 'Build',
+            command: `docker exec -t ${container} bash -c '[[ $(npm run | grep "build$") ]] && yarn build'`,
+          },
+          {
+            name: 'Restart container',
+            command: `docker restart ${container}`,
+          },
         ];
         break;
 
@@ -47,8 +62,7 @@ export class Builder {
         throw new Error(`Unknown mode: ${mode}`);
     }
 
-    const command = commands.join(' && ');
-    const subject = new BehaviorSubject<string>(`-> ${command}`);
+    const subject = new BehaviorSubject<string>('');
     const ssh = new Client();
 
     let lineData = '';
@@ -68,26 +82,39 @@ export class Builder {
       lineData = '';
     };
 
+    let promise = Promise.resolve() as Promise<void>;
+
     ssh.on('ready', () => {
-      ssh.exec(command, (error, stream) => {
-        if (error) {
-          subject.error(error);
-          return;
-        }
-        stream.pipe(process.stdout);
-        stream
-          .on('close', code => {
-            if (code !== 0) {
-              subject.error(new Error(`Non-zero exit code: ${code}`));
-            } else {
-              subject.complete();
+      steps.forEach(({ name, command }, index) => {
+        promise = promise.then(() => new Promise<void>((resolve, reject) => {
+          subject.next(`\n## ${name} (${index + 1}/${steps.length})`);
+          subject.next(command);
+
+          ssh.exec(command, (error, stream) => {
+            if (error) {
+              subject.error(error);
+              return;
             }
-            ssh.end();
-          })
-          .on('data', processData)
-          .stderr
-          .on('data', processData);
+            stream
+              .on('close', code => {
+                if (code !== 0) {
+                  reject(new Error(`Non-zero exit code: ${code}`));
+                } else {
+                  resolve();
+                }
+              })
+              .on('data', processData)
+              .stderr
+              .on('data', processData);
+          });
+        }));
       });
+
+      promise
+        .then(() => subject.complete())
+        .catch(error => subject.error(error))
+        .finally(() => ssh.end());
+
     }).connect(this.config);
 
     return subject;

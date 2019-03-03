@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@types/node": "^11.9.6",
+    "ansi-colors": "^3.2.4",
     "githubhook": "^1.9.1",
     "jsonschema": "^1.2.0",
     "rxjs": "^6.4.0",

@@ -1,3 +1,4 @@
+import * as color from 'ansi-colors';
 import { validate } from 'jsonschema';
 
 import * as rawConfig from '../config.json';
@@ -31,6 +32,7 @@ async function start(): Promise<void> {
 
   const dispatchLog = (level: LogLevel, data: string) => {
     const log = { level, data, time: Date.now() };
+    console.log(log.data.replace(/[\n\r]+$/, ''));
     logs.push(log);
     wsServer.send([log]);
   };
@@ -49,17 +51,17 @@ async function start(): Promise<void> {
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
-Builds ${repos}\n\n`);
+Builds ${repos}`);
 
       builder
         .build(repos)
         .subscribe({
           complete: () => {
-            dispatchLog(LogLevel.Info, 'Success');
+            dispatchLog(LogLevel.Info, color.green('Success'));
             resolve();
           },
-          error: data => {
-            dispatchLog(LogLevel.Error, data);
+          error: error => {
+            dispatchLog(LogLevel.Error, color.red(`Fail: ${error.message.toLowerCase()}`));
             resolve();
           },
           next: data => dispatchLog(LogLevel.Info, data),

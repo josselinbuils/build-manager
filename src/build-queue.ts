@@ -1,3 +1,5 @@
+import { Logger } from './logger';
+
 export class BuildQueue {
   private busy: boolean;
   private readonly queue: (() => Promise<void>)[] = [];
@@ -13,7 +15,12 @@ export class BuildQueue {
 
   private async exec(build: () => Promise<void>): Promise<void> {
     this.busy = true;
-    await build();
+
+    try {
+      await build();
+    } catch (error) {
+      Logger.error(error.stack);
+    }
 
     if (this.queue.length > 0) {
       await this.exec(this.queue.shift());

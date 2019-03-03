@@ -49,6 +49,22 @@ export class Builder {
     const subject = new BehaviorSubject<string>(`-> ${command}`);
     const ssh = new Client();
 
+    let lineData = '';
+
+    const processData = (data: string | Buffer) => {
+      if (data instanceof Buffer) {
+        data = data.toString('utf8');
+      }
+      lineData += data;
+
+      if (!/\r\n?|\n/.test(data)) {
+        return;
+      }
+      if (lineData.length < 500) {
+        subject.next(lineData);
+      }
+    };
+
     ssh.on('ready', () => {
       ssh.exec(command, (error, stream) => {
         if (error) {
@@ -65,9 +81,9 @@ export class Builder {
             }
             ssh.end();
           })
-          .on('data', data => subject.next(data))
+          .on('data', processData)
           .stderr
-          .on('data', data => subject.next(data));
+          .on('data', processData);
       });
     }).connect(this.config);
 

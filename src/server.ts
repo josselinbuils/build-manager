@@ -29,17 +29,7 @@ async function start(): Promise<void> {
 
   wsConnectionObservable.subscribe(send => send(logs));
 
-  const dispatchLog = (level: LogLevel, data: string | Buffer) => {
-    if (data instanceof Buffer) {
-      data = data.toString('utf8');
-    }
-
-    if (typeof data !== 'string') {
-      return;
-    }
-
-    data = data.replace(/\s$/, '');
-
+  const dispatchLog = (level: LogLevel, data: string) => {
     const log = { level, data, time: Date.now() };
     logs.push(log);
     wsServer.send([log]);

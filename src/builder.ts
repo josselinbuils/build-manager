@@ -1,3 +1,4 @@
+import * as color from 'ansi-colors';
 import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
 
@@ -88,7 +89,7 @@ export class Builder {
     ssh.on('ready', () => {
       steps.forEach(({ name, command }, index) => {
         promise = promise.then(() => new Promise<void>((resolve, reject) => {
-          subject.next(`\n## ${name} (${index + 1}/${steps.length})`);
+          subject.next(color.bold(`\n## ${name} (${index + 1}/${steps.length})`));
           subject.next(command);
 
           ssh.exec(command, (error, stream) => {

@@ -68,7 +68,7 @@ export class Builder {
     const subject = new Subject<string>();
     const ssh = new Client();
 
-    let lineData = '';
+    let lineData = ' ';
 
     const processData = (data: string | Buffer) => {
       if (data instanceof Buffer) {
@@ -82,7 +82,7 @@ export class Builder {
       if (lineData.length <= MAX_LINE_LENGTH) {
         subject.next(lineData);
       }
-      lineData = '';
+      lineData = ' ';
     };
 
     let promise = Promise.resolve() as Promise<void>;
@@ -90,7 +90,7 @@ export class Builder {
     ssh.on('ready', () => {
       steps.forEach(({ name, command }, index) => {
         promise = promise.then(() => new Promise<void>((resolve, reject) => {
-          subject.next(`\n${color.bold(`${STEP_EMOJI[index]} ${name}`)}`);
+          subject.next(`\n${color.bold(`${STEP_EMOJI[index]} ${name}\n`)}`);
 
           ssh.exec(command, (error, stream) => {
             if (error) {

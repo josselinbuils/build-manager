@@ -3,6 +3,7 @@ import { validate } from 'jsonschema';
 import * as rawConfig from '../config.json';
 import * as configSchema from '../config.schema.json';
 
+import { BuildQueue } from './build-queue';
 import { Builder } from './builder';
 import { Config } from './config';
 import { HookServer } from './hook-server';
@@ -44,12 +45,15 @@ async function start(): Promise<void> {
     wsServer.send([log]);
   };
 
+  const buildQueue = new BuildQueue();
+
   hookObservable.subscribe(repos => {
-    Logger.info(`Builds ${repos}`);
+    buildQueue.enqueue(async () => new Promise<void>(resolve => {
+      Logger.info(`Builds ${repos}`);
 
-    logs = [];
+      logs = [];
 
-    dispatchLog(LogLevel.Info, `\
+      dispatchLog(LogLevel.Info, `\
  _         _ _    _
 | |__ _  _(_) |__| |  _ __  __ _ _ _  __ _ __ _ ___ _ _
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
@@ -57,13 +61,20 @@ async function start(): Promise<void> {
                                           |___/
 Builds ${repos}\n\n\n`);
 
-    builder
-      .build(repos)
-      .subscribe({
-        complete: () => dispatchLog(LogLevel.Info, 'Success'),
-        error: data => dispatchLog(LogLevel.Error, data),
-        next: data => dispatchLog(LogLevel.Info, data),
-      });
+      builder
+        .build(repos)
+        .subscribe({
+          complete: () => {
+            dispatchLog(LogLevel.Info, 'Success');
+            resolve();
+          },
+          error: data => {
+            dispatchLog(LogLevel.Error, data);
+            resolve();
+          },
+          next: data => dispatchLog(LogLevel.Info, data),
+        });
+    }));
   });
 
   Logger.info('Build manager server successfully started');

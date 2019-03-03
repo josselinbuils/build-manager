@@ -49,7 +49,8 @@ export class Builder {
           },
           {
             name: 'Build',
-            command: `docker exec -t ${container} bash -c '[[ $(npm run | grep "build$") ]] && yarn build'`,
+            command: `docker exec -t ${container} bash -c '([[ $(npm run | grep "build$") ]] && yarn build)\
+ || echo No build command found'`,
           },
           {
             name: 'Restart container',

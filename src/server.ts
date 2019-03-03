@@ -37,7 +37,7 @@ async function start(): Promise<void> {
       return;
     }
 
-    data = data.replace(/\s$/g, '');
+    data = data.replace(/\s$/, '');
 
     const log = { level, data, time: Date.now() };
     logs.push(log);

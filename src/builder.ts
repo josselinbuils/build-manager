@@ -91,7 +91,6 @@ export class Builder {
       steps.forEach(({ name, command }, index) => {
         promise = promise.then(() => new Promise<void>((resolve, reject) => {
           subject.next(`\n${color.bold(`${STEP_EMOJI[index]} ${name}`)}`);
-          subject.next(command);
 
           ssh.exec(command, (error, stream) => {
             if (error) {

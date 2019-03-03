@@ -32,7 +32,7 @@ async function start(): Promise<void> {
 
   const dispatchLog = (level: LogLevel, data: string) => {
     const log = { level, data, time: Date.now() };
-    console.log(log.data.replace(/[\n\r]+$/, ''));
+    console.log(log.data.replace(/[\n\r]$/, ''));
     logs.push(log);
     wsServer.send([log]);
   };

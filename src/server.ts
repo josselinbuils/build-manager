@@ -49,7 +49,7 @@ async function start(): Promise<void> {
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
-Builds ${repos}\n\n\n`);
+Builds ${repos}\n\n`);
 
       builder
         .build(repos)

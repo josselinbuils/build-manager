@@ -62,6 +62,7 @@ export class Builder {
       }
       if (lineData.length < 500) {
         subject.next(lineData);
+        lineData = '';
       }
     };
 

@@ -57,11 +57,12 @@ Builds ${repos}`);
         .build(repos)
         .subscribe({
           complete: () => {
-            dispatchLog(LogLevel.Info, color.green('Success'));
+            dispatchLog(LogLevel.Info, color.green('\nSuccess'));
             resolve();
           },
           error: error => {
-            dispatchLog(LogLevel.Error, color.red(`Fail: ${error.message.toLowerCase()}`));
+            dispatchLog(LogLevel.Error, color.red(error.message));
+            dispatchLog(LogLevel.Error, color.red('\nFail'));
             resolve();
           },
           next: data => dispatchLog(LogLevel.Info, data),

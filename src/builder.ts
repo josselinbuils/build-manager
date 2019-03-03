@@ -3,6 +3,8 @@ import { Client } from 'ssh2';
 
 import { SshConfig } from './config';
 
+const MAX_LINE_LENGTH = 500;
+
 export enum BuildMode {
   Clean = 'clean',
   Update = 'update',
@@ -60,10 +62,10 @@ export class Builder {
       if (!/\r\n?|\n/.test(data)) {
         return;
       }
-      if (lineData.length < 500) {
+      if (lineData.length <= MAX_LINE_LENGTH) {
         subject.next(lineData);
-        lineData = '';
       }
+      lineData = '';
     };
 
     ssh.on('ready', () => {

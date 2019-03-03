@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
 
 import { SshConfig } from './config';
@@ -62,7 +62,7 @@ export class Builder {
         throw new Error(`Unknown mode: ${mode}`);
     }
 
-    const subject = new BehaviorSubject<string>('');
+    const subject = new Subject<string>();
     const ssh = new Client();
 
     let lineData = '';

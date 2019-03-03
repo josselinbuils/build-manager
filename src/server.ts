@@ -37,7 +37,7 @@ async function start(): Promise<void> {
       return;
     }
 
-    data = data.replace(/\s+$/g, '');
+    data = data.replace(/\s$/g, '');
 
     const log = { level, data, time: Date.now() };
     logs.push(log);
@@ -48,6 +48,17 @@ async function start(): Promise<void> {
     Logger.info(`Builds ${repos}`);
 
     logs = [];
+
+    dispatchLog(LogLevel.Info, `\
+
+ _         _ _    _
+| |__ _  _(_) |__| |  _ __  __ _ _ _  __ _ __ _ ___ _ _
+| '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
+|_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
+                                          |___/
+Builds ${repos}
+
+`);
 
     builder
       .build(repos)

@@ -5,6 +5,7 @@ import { Client } from 'ssh2';
 import { SshConfig } from './config';
 
 const MAX_LINE_LENGTH = 500;
+const STEP_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
 
 export enum BuildMode {
   Clean = 'clean',
@@ -89,7 +90,7 @@ export class Builder {
     ssh.on('ready', () => {
       steps.forEach(({ name, command }, index) => {
         promise = promise.then(() => new Promise<void>((resolve, reject) => {
-          subject.next(`\n${color.bold(`# ${name}`)} (${index + 1}/${steps.length})`);
+          subject.next(`\n${color.bold(`${STEP_EMOJI[index]} ${name}`)}`);
           subject.next(command);
 
           ssh.exec(command, (error, stream) => {

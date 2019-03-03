@@ -51,18 +51,18 @@ async function start(): Promise<void> {
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
-${color.bold(`Builds ${repos}`)}`);
+${color.bold(`⚙️ Builds ${repos}`)}`);
 
       builder
         .build(repos)
         .subscribe({
           complete: () => {
-            dispatchLog(LogLevel.Info, color.green('\nSuccess'));
+            dispatchLog(LogLevel.Info, color.green('\n✔️ Success'));
             resolve();
           },
           error: error => {
             dispatchLog(LogLevel.Error, color.red(error.message));
-            dispatchLog(LogLevel.Error, color.red('\nFail'));
+            dispatchLog(LogLevel.Error, color.red('\n❌ Fail'));
             resolve();
           },
           next: data => dispatchLog(LogLevel.Info, data),

@@ -89,7 +89,7 @@ export class Builder {
 
     ssh.on('ready', () => {
       steps.forEach(({ name, command }, index) => {
-        promise = promise.then(() => new Promise<void>((resolve, reject) => {
+        promise = promise.then(async () => new Promise<void>((resolve, reject) => {
           subject.next(`\n${color.bold(`${STEP_EMOJI[index]} ${name}`)}\n\n`);
 
           ssh.exec(command, (error, stream) => {
@@ -112,6 +112,7 @@ export class Builder {
         }));
       });
 
+      // tslint:disable-next-line
       promise
         .then(() => subject.complete())
         .catch(error => subject.error(error))

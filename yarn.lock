@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@josselinbuils/tslint@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@josselinbuils/tslint/-/tslint-1.0.0.tgz#ca3a29d3995bef9b799f69cf7bd57c8b920e7700"
+  integrity sha512-kwAg2Zuj7K4vBPoZXtoA1IyNEjNAol38fUGFUmGMURZN305+m5wZ6mMkmdu82fgJ6i6xcH+4/13pmKizoeUeLQ==
+
 "@types/node@^11.9.6":
   version "11.9.6"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-11.9.6.tgz#c632bbcc780a1349673a6e2e9b9dfa8c369d3c74"

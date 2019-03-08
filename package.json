@@ -18,6 +18,7 @@
     "ws": "^6.1.4"
   },
   "devDependencies": {
+    "@josselinbuils/tslint": "^1.0.0",
     "tslint": "^5.13.0"
   }
 }

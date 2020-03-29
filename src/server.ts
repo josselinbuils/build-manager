@@ -11,6 +11,7 @@ import { Logger, LogLevel } from './Logger';
 import { hasOption } from './utils';
 import { Command, MessageType, WsServer } from './WsServer';
 
+const AUTHENTICATION_DURATION_MS = 60 * 1000;
 const MAX_AUTHENTICATION_TENTATIVES_BY_IP = 3;
 const PORT_WS = 9001;
 
@@ -174,6 +175,7 @@ function authenticate(password: string, ip: string): boolean {
 
   if (password === ssh.password) {
     authentication[ip].authenticated = true;
+    setTimeout(() => delete authentication[ip], AUTHENTICATION_DURATION_MS);
     return true;
   }
 

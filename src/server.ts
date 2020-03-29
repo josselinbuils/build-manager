@@ -43,7 +43,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!isAuthenticated(ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: 'Unauthorized, please login',
+            value: chalk.red('⛔️ Unauthorized, please login'),
           });
           closeClient();
           return;
@@ -52,7 +52,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!repositories.includes(repos)) {
           await sendMessage({
             type: MessageType.Error,
-            value: 'Unknown repository',
+            value: chalk.red('❗ Unknown repository'),
           });
           closeClient();
           return;
@@ -81,11 +81,14 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!authenticate(password, ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: 'Wrong password',
+            value: chalk.red('❗ Wrong password'),
           });
           closeClient();
         } else {
-          await sendMessage({ type: MessageType.Info, value: 'Login success' });
+          await sendMessage({
+            type: MessageType.Info,
+            value: chalk.green('✔ Login success'),
+          });
           closeClient();
         }
         break;
@@ -95,9 +98,10 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         break;
 
       default:
-        sendMessage({ type: MessageType.Error, value: 'Unknown command' }).then(
-          closeClient
-        );
+        sendMessage({
+          type: MessageType.Error,
+          value: chalk.red('❗ Unknown command'),
+        }).then(closeClient);
     }
   }
 );

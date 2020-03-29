@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import WebSocket, { OPEN, Server } from 'ws';
 import { Logger } from './Logger';
 
@@ -46,9 +47,10 @@ export class WsServer {
 
       if (ip === undefined) {
         Logger.error('Unable to retrieve client ip, close connection');
-        sendMessage({ type: MessageType.Error, value: 'Ghostbuster' }).then(
-          closeClient
-        );
+        sendMessage({
+          type: MessageType.Error,
+          value: chalk.red('Ghostbuster 👻'),
+        }).then(closeClient);
         return;
       }
 
@@ -56,7 +58,7 @@ export class WsServer {
         Logger.error('Banned IP, close connection');
         sendMessage({
           type: MessageType.Error,
-          value: 'Banned IP, too many failed login attempts',
+          value: chalk.red('⛔️ Banned IP, too many failed login attempts'),
         }).then(closeClient);
         return;
       }

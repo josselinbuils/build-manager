@@ -1,16 +1,17 @@
 import chalk from 'chalk';
 import { validate } from 'jsonschema';
-import rawConfig from '../config.json';
-import configSchema from '../config.schema.json';
-import { BuildQueue } from './build-queue';
-import { Builder } from './builder';
-import { Config } from './config';
-import { HookServer } from './hook-server';
-import { Logger, LogLevel } from './logger';
-import { WsServer } from './ws-server';
+import path from 'path';
+import { Builder } from './Builder';
+import { BuildQueue } from './BuildQueue';
+import configSchema from './config.schema.json';
+import { HookServer } from './HookServer';
+import { Config } from './interfaces';
+import { Logger, LogLevel } from './Logger';
+import { WsServer } from './WsServer';
 
 const PORT_WS = 9001;
 
+const rawConfig = require(path.join(process.cwd(), 'config.json'));
 const config = validate(rawConfig, configSchema, { throwError: true })
   .instance as Config;
 
@@ -18,7 +19,7 @@ async function start(): Promise<void> {
   Logger.info('Starts build manager server');
 
   const { hook, repositories, ssh } = config;
-  let logs: Log[] = [];
+  let logs = [] as Log[];
 
   const builder = new Builder(ssh);
   const hookServer = new HookServer(hook, repositories);

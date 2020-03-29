@@ -1,5 +1,4 @@
 export class Logger {
-
   static error(str: string): void {
     this.internalLog(LogLevel.Error, str);
   }

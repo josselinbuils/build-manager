@@ -1,17 +1,17 @@
-import githubhook from 'githubhook';
+import GithubHook from 'githubhook';
 import { Observable, Subject } from 'rxjs';
-import { HookConfig } from './config';
-import { Logger } from './logger';
+import { HookConfig } from './interfaces';
+import { Logger } from './Logger';
 
 export class HookServer {
-  private readonly server;
+  private readonly server: GithubHook;
   private readonly subject = new Subject<string>();
 
   constructor(
     private readonly config: HookConfig,
     private readonly repositories: string[]
   ) {
-    this.server = githubhook({
+    this.server = new GithubHook({
       ...config,
       logger: Logger,
     });

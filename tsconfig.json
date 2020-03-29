@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src",
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "lib": [
       "esnext"
     ],
     "module": "commonjs",
+    "noImplicitAny": true,
+    "outDir": "./dist",
     "resolveJsonModule": true,
-    "target": "es6",
-    "types": [
-      "node"
-    ]
+    "rootDir": "./src",
+    "target": "es6"
   },
   "include": [
     "src"

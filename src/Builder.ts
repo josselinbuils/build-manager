@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
-import { SshConfig } from './config';
+import { SSHConfig } from './interfaces';
 
 const MAX_LINE_LENGTH = 500;
 
@@ -11,7 +11,7 @@ export enum BuildMode {
 }
 
 export class Builder {
-  constructor(private readonly config: SshConfig) {}
+  constructor(private readonly config: SSHConfig) {}
 
   build(repos: string, mode: BuildMode = BuildMode.Update): Observable<string> {
     const service = repos.replace(/-/g, '').toLowerCase();
@@ -98,7 +98,7 @@ export class Builder {
                     return;
                   }
                   stream
-                    .on('close', (code) => {
+                    .on('close', (code: number) => {
                       if (code !== 0) {
                         reject(new Error(`Non-zero exit code: ${code}`));
                       } else {

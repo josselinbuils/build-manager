@@ -1,4 +1,4 @@
-import * as color from 'ansi-colors';
+import chalk from 'chalk';
 import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
 import { SshConfig } from './config';
@@ -11,7 +11,6 @@ export enum BuildMode {
 }
 
 export class Builder {
-
   constructor(private readonly config: SshConfig) {}
 
   build(repos: string, mode: BuildMode = BuildMode.Update): Observable<string> {
@@ -85,38 +84,41 @@ export class Builder {
 
     let promise = Promise.resolve() as Promise<void>;
 
-    ssh.on('ready', () => {
-      steps.forEach(({ name, command }, index) => {
-        promise = promise.then(async () => new Promise<void>((resolve, reject) => {
-          subject.next(`\n${color.bold(`[${index + 1}] ${name}`)}\n\n`);
+    ssh
+      .on('ready', () => {
+        steps.forEach(({ name, command }, index) => {
+          promise = promise.then(
+            async () =>
+              new Promise<void>((resolve, reject) => {
+                subject.next(`\n${chalk.bold(`[${index + 1}] ${name}`)}\n\n`);
 
-          ssh.exec(command, (error, stream) => {
-            if (error) {
-              subject.error(error);
-              return;
-            }
-            stream
-              .on('close', code => {
-                if (code !== 0) {
-                  reject(new Error(`Non-zero exit code: ${code}`));
-                } else {
-                  resolve();
-                }
+                ssh.exec(command, (error, stream) => {
+                  if (error) {
+                    subject.error(error);
+                    return;
+                  }
+                  stream
+                    .on('close', (code) => {
+                      if (code !== 0) {
+                        reject(new Error(`Non-zero exit code: ${code}`));
+                      } else {
+                        resolve();
+                      }
+                    })
+                    .on('data', processData)
+                    .stderr.on('data', processData);
+                });
               })
-              .on('data', processData)
-              .stderr
-              .on('data', processData);
-          });
-        }));
-      });
+          );
+        });
 
-      // tslint:disable-next-line
-      promise
-        .then(() => subject.complete())
-        .catch(error => subject.error(error))
-        .finally(() => ssh.end());
-
-    }).connect(this.config);
+        // tslint:disable-next-line
+        promise
+          .then(() => subject.complete())
+          .catch((error) => subject.error(error))
+          .finally(() => ssh.end());
+      })
+      .connect(this.config);
 
     return subject;
   }

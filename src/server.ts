@@ -1,7 +1,7 @@
-import * as color from 'ansi-colors';
+import chalk from 'chalk';
 import { validate } from 'jsonschema';
-import * as rawConfig from '../config.json';
-import * as configSchema from '../config.schema.json';
+import rawConfig from '../config.json';
+import configSchema from '../config.schema.json';
 import { BuildQueue } from './build-queue';
 import { Builder } from './builder';
 import { Config } from './config';
@@ -11,7 +11,8 @@ import { WsServer } from './ws-server';
 
 const PORT_WS = 9001;
 
-const config = validate(rawConfig, configSchema, { throwError: true }).instance as Config;
+const config = validate(rawConfig, configSchema, { throwError: true })
+  .instance as Config;
 
 async function start(): Promise<void> {
   Logger.info('Starts build manager server');
@@ -26,7 +27,7 @@ async function start(): Promise<void> {
   const hookObservable = await hookServer.start();
   const wsConnectionObservable = await wsServer.start(PORT_WS);
 
-  wsConnectionObservable.subscribe(send => send(logs));
+  wsConnectionObservable.subscribe((send) => send(logs));
 
   const dispatchLog = (level: LogLevel, data: string) => {
     const log = { level, data, time: Date.now() };
@@ -37,35 +38,39 @@ async function start(): Promise<void> {
 
   const buildQueue = new BuildQueue();
 
-  hookObservable.subscribe(repos => {
-    buildQueue.enqueue(async () => new Promise<void>(resolve => {
-      Logger.info(`Builds ${repos}`);
+  hookObservable.subscribe((repos) => {
+    buildQueue.enqueue(
+      async () =>
+        new Promise<void>((resolve) => {
+          Logger.info(`Builds ${repos}`);
 
-      logs = [];
+          logs = [];
 
-      dispatchLog(LogLevel.Info, `\
+          dispatchLog(
+            LogLevel.Info,
+            `\
  _         _ _    _
 | |__ _  _(_) |__| |  _ __  __ _ _ _  __ _ __ _ ___ _ _
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
-${color.bold(`⚙️ Builds ${repos}`)}`);
+${chalk.bold(`⚙️ Builds ${repos}`)}`
+          );
 
-      builder
-        .build(repos)
-        .subscribe({
-          complete: () => {
-            dispatchLog(LogLevel.Info, color.green('\n✔ Success'));
-            resolve();
-          },
-          error: error => {
-            dispatchLog(LogLevel.Error, color.red(error.message));
-            dispatchLog(LogLevel.Error, color.red('\n❌ Fail'));
-            resolve();
-          },
-          next: data => dispatchLog(LogLevel.Info, data),
-        });
-    }));
+          builder.build(repos).subscribe({
+            complete: () => {
+              dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
+              resolve();
+            },
+            error: (error) => {
+              dispatchLog(LogLevel.Error, chalk.red(error.message));
+              dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
+              resolve();
+            },
+            next: (data) => dispatchLog(LogLevel.Info, data),
+          });
+        })
+    );
   });
 
   Logger.info('Build manager server successfully started');

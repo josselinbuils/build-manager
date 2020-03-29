@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@types/node": "^13.9.5",
-    "ansi-colors": "^3.2.4",
+    "chalk": "^3.0.0",
     "githubhook": "^1.9.3",
     "jsonschema": "^1.2.5",
     "rxjs": "^6.5.4",

@@ -1,33 +1,40 @@
 import GithubHook from 'githubhook';
-import { Observable, Subject } from 'rxjs';
 import { HookConfig } from './interfaces';
 import { Logger } from './Logger';
 
 export class HookServer {
+  private hookHandler = (() => {}) as (repos: string) => void;
   private readonly server: GithubHook;
-  private readonly subject = new Subject<string>();
+
+  static create(config: HookConfig, repositories: string[]): HookServer {
+    return new HookServer(config, repositories);
+  }
 
   constructor(
     private readonly config: HookConfig,
     private readonly repositories: string[]
   ) {
-    this.server = new GithubHook({
+    const server = new GithubHook({
       ...config,
       logger: Logger,
     });
-  }
 
-  async start(): Promise<Observable<string>> {
-    return new Promise<Observable<string>>((resolve) => {
-      this.server.on('push', (repos, ref) => {
+    server
+      .on('push', (repos, ref) => {
         if (
           this.repositories.indexOf(repos) !== -1 &&
           ref === 'refs/heads/master'
         ) {
-          this.subject.next(repos);
+          this.hookHandler(repos);
         }
-      });
-      this.server.listen(() => resolve(this.subject));
-    });
+      })
+      .listen();
+
+    this.server = server;
+  }
+
+  onHook(hookHandler: (repos: string) => void): HookServer {
+    this.hookHandler = hookHandler;
+    return this;
   }
 }

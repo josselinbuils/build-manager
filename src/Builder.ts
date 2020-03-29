@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
 import { SSHConfig } from './interfaces';
 
@@ -11,9 +10,17 @@ export enum BuildMode {
 }
 
 export class Builder {
+  private completeHandler = (() => {}) as () => void;
+  private errorHandler = (() => {}) as (error: Error) => void;
+  private logHandler = (() => {}) as (log: string) => void;
+
+  static create(config: SSHConfig): Builder {
+    return new Builder(config);
+  }
+
   constructor(private readonly config: SSHConfig) {}
 
-  build(repos: string, mode: BuildMode = BuildMode.Update): Observable<string> {
+  build(repos: string, mode: BuildMode): void {
     const service = repos.replace(/-/g, '').toLowerCase();
     const container = `docker_${service}_1`;
     let steps: { name: string; command: string }[];
@@ -27,7 +34,7 @@ export class Builder {
           },
           {
             name: 'Recreate container',
-            command: 'docker-compose up -d',
+            command: 'cd /home/ubuntu/docker && docker-compose up -d',
           },
           {
             name: 'Clean',
@@ -62,9 +69,7 @@ export class Builder {
         throw new Error(`Unknown mode: ${mode}`);
     }
 
-    const subject = new Subject<string>();
     const ssh = new Client();
-
     let lineData = ' ';
 
     const processData = (data: string | Buffer) => {
@@ -77,7 +82,7 @@ export class Builder {
         return;
       }
       if (lineData.length <= MAX_LINE_LENGTH) {
-        subject.next(lineData);
+        this.logHandler(lineData);
       }
       lineData = ' ';
     };
@@ -90,7 +95,9 @@ export class Builder {
           promise = promise.then(
             async () =>
               new Promise<void>((resolve, reject) => {
-                subject.next(`\n${chalk.bold(`[${index + 1}] ${name}`)}\n\n`);
+                this.logHandler(
+                  `\n${chalk.bold(`[${index + 1}] ${name}`)}\n\n`
+                );
 
                 ssh.exec(command, (error, stream) => {
                   if (error) {
@@ -113,12 +120,25 @@ export class Builder {
         });
 
         promise
-          .then(() => subject.complete())
-          .catch((error) => subject.error(error))
+          .then(() => this.completeHandler())
+          .catch((error) => this.errorHandler(error))
           .finally(() => ssh.end());
       })
       .connect(this.config);
+  }
 
-    return subject;
+  onComplete(completeHandler: () => void): Builder {
+    this.completeHandler = completeHandler;
+    return this;
+  }
+
+  onError(errorHandler: (error: Error) => void): Builder {
+    this.errorHandler = errorHandler;
+    return this;
+  }
+
+  onLog(logHandler: (log: string) => void): Builder {
+    this.logHandler = logHandler;
+    return this;
   }
 }

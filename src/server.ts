@@ -1,83 +1,174 @@
+import { Deferred } from '@josselinbuils/utils';
 import chalk from 'chalk';
 import { validate } from 'jsonschema';
 import path from 'path';
-import { Builder } from './Builder';
+import { Builder, BuildMode } from './Builder';
 import { BuildQueue } from './BuildQueue';
 import configSchema from './config.schema.json';
 import { HookServer } from './HookServer';
 import { Config } from './interfaces';
 import { Logger, LogLevel } from './Logger';
-import { WsServer } from './WsServer';
+import { hasOption } from './utils';
+import { Command, MessageType, WsServer } from './WsServer';
 
+const MAX_AUTHENTICATION_TENTATIVES_BY_IP = 3;
 const PORT_WS = 9001;
+
+Logger.info('Starts build manager server');
 
 const rawConfig = require(path.join(process.cwd(), 'config.json'));
 const config = validate(rawConfig, configSchema, { throwError: true })
   .instance as Config;
 
-async function start(): Promise<void> {
-  Logger.info('Starts build manager server');
+const authentication = {} as {
+  [ip: string]: { authenticated: boolean; tentatives: number };
+};
 
-  const { hook, repositories, ssh } = config;
-  let logs = [] as Log[];
+const { hook, repositories, ssh } = config;
+let logs = [] as Log[];
 
-  const builder = new Builder(ssh);
-  const hookServer = new HookServer(hook, repositories);
-  const wsServer = new WsServer();
+HookServer.create(hook, repositories).onHook(build);
 
-  const hookObservable = await hookServer.start();
-  const wsConnectionObservable = await wsServer.start(PORT_WS);
+const wsServer = WsServer.create(PORT_WS).onMessage(
+  ({ type, value }, sendMessage, ip, closeClient) => {
+    if (type !== MessageType.Command) {
+      return;
+    }
+    const { args, command } = value;
 
-  wsConnectionObservable.subscribe((send) => send(logs));
+    switch (command) {
+      case Command.Build:
+        const repos = args[0];
 
-  const dispatchLog = (level: LogLevel, data: string) => {
-    const log = { level, data, time: Date.now() };
-    console.log(log.data.replace(/[\n\r]$/, ''));
-    logs.push(log);
-    wsServer.send([log]);
-  };
+        if (!isAuthenticated(ip)) {
+          sendMessage({
+            type: MessageType.Error,
+            value: 'Unauthorized, please login',
+          });
+          closeClient();
+          return;
+        }
 
-  const buildQueue = new BuildQueue();
+        if (!repositories.includes(repos)) {
+          sendMessage({ type: MessageType.Error, value: 'Unknown repository' });
+          closeClient();
+          return;
+        }
 
-  hookObservable.subscribe((repos) => {
-    buildQueue.enqueue(
-      async () =>
-        new Promise<void>((resolve) => {
-          Logger.info(`Builds ${repos}`);
+        const buildMode = hasOption(args, 'clean')
+          ? BuildMode.Clean
+          : BuildMode.Update;
 
-          logs = [];
+        build(repos, buildMode).then(closeClient);
+        break;
 
-          dispatchLog(
-            LogLevel.Info,
-            `\
+      case Command.Login:
+        const password = args[0];
+
+        if (isAuthenticated(ip)) {
+          sendMessage({
+            type: MessageType.Info,
+            value: 'Already logged in',
+          });
+          closeClient();
+          return;
+        }
+
+        if (!authenticate(password, ip)) {
+          sendMessage({ type: MessageType.Error, value: 'Wrong password' });
+        } else {
+          sendMessage({ type: MessageType.Info, value: 'Login success' });
+        }
+        closeClient();
+        break;
+
+      case Command.Logs:
+        sendMessage({ type: MessageType.Logs, value: logs });
+        break;
+
+      default:
+        sendMessage({ type: MessageType.Error, value: 'Unknown command' });
+    }
+  }
+);
+
+const buildQueue = new BuildQueue();
+
+Logger.info('Build manager server successfully started');
+
+async function build(
+  repos: string,
+  buildMode: BuildMode = BuildMode.Update
+): Promise<void> {
+  const buildDeferred = new Deferred<void>();
+
+  buildQueue.enqueue(async () => {
+    Logger.info(`Builds ${repos}`);
+
+    logs = [];
+
+    dispatchLog(
+      LogLevel.Info,
+      `\
  _         _ _    _
 | |__ _  _(_) |__| |  _ __  __ _ _ _  __ _ __ _ ___ _ _
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
 ${chalk.bold(`⚙️ Builds ${repos}`)}`
-          );
-
-          builder.build(repos).subscribe({
-            complete: () => {
-              dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
-              resolve();
-            },
-            error: (error) => {
-              dispatchLog(LogLevel.Error, chalk.red(error.message));
-              dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
-              resolve();
-            },
-            next: (data) => dispatchLog(LogLevel.Info, data),
-          });
-        })
     );
+
+    Builder.create(ssh)
+      .onError((error) => {
+        dispatchLog(LogLevel.Error, chalk.red(error.message));
+        dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
+        buildDeferred.resolve();
+      })
+      .onComplete(() => {
+        dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
+        buildDeferred.resolve();
+      })
+      .onLog((log) => dispatchLog(LogLevel.Info, log))
+      .build(repos, buildMode);
+
+    return buildDeferred.promise;
   });
 
-  Logger.info('Build manager server successfully started');
+  return buildDeferred.promise;
 }
 
-start();
+function dispatchLog(level: LogLevel, data: string): void {
+  const log = { level, data, time: Date.now() };
+  console.log(log.data.replace(/[\n\r]$/, ''));
+  logs.push(log);
+  wsServer.send({ type: MessageType.Logs, value: [log] });
+}
+
+function isAuthenticated(ip: string): boolean {
+  return authentication[ip]?.authenticated || false;
+}
+
+function authenticate(password: string, ip: string): boolean {
+  if (authentication[ip] === undefined) {
+    authentication[ip] = {
+      authenticated: false,
+      tentatives: 1,
+    };
+  } else {
+    authentication[ip].tentatives++;
+  }
+
+  if (password === ssh.password) {
+    authentication[ip].authenticated = true;
+    return true;
+  }
+
+  if (authentication[ip].tentatives >= MAX_AUTHENTICATION_TENTATIVES_BY_IP) {
+    wsServer.banIP(ip);
+  }
+
+  return false;
+}
 
 interface Log {
   level: LogLevel;

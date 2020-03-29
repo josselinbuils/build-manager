@@ -3,7 +3,7 @@ declare module 'githubhook' {
 
   export default class GithubHook extends EventEmitter {
     constructor(options: Options);
-    listen(callback: () => void): void;
+    listen(callback?: () => void): void;
   }
 
   interface Options {

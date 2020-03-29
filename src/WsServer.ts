@@ -1,38 +1,109 @@
-import { Observable, Subject } from 'rxjs';
-import { OPEN, Server } from 'ws';
+import WebSocket, { OPEN, Server } from 'ws';
 import { Logger } from './Logger';
 
-export class WsServer {
-  private server: Server;
+export enum Command {
+  Build = 'build',
+  Login = 'login',
+  Logs = 'logs',
+}
 
-  send(data: object): void {
-    this.server.clients.forEach((client) => {
-      if (client.readyState === OPEN) {
-        client.send(JSON.stringify(data));
-      }
-    });
+export enum MessageType {
+  Command = 'command',
+  Error = 'error',
+  Info = 'info',
+  Logs = 'logs',
+}
+
+export class WsServer {
+  private readonly bannedIPs = [] as string[];
+  private readonly clientIPMap = {} as { [ip: string]: WebSocket };
+  private messageHandler = noop as (
+    message: WsMessage,
+    sendMessage: WsSender,
+    ip: string,
+    closeClient: () => void
+  ) => void;
+  private readonly server: Server;
+
+  static create(port: number): WsServer {
+    return new WsServer(port);
   }
 
-  async start(port: number): Promise<Observable<WsDataSender>> {
-    return new Promise<Observable<WsDataSender>>((resolve) => {
-      const connectionSubject = new Subject<WsDataSender>();
+  constructor(port: number) {
+    const server = new Server({ port }, () => {
+      Logger.info(`WebSocket server is listening on port ${port}`);
+    });
 
-      this.server = new Server({ port }, () => {
-        Logger.info(`WebSocket server is listening on port ${port}`);
-        resolve(connectionSubject);
+    server.on('connection', (client, { socket }) => {
+      Logger.info('New websocket connection');
+
+      const ip = socket.remoteAddress;
+      const closeClient = () => client.close();
+      const sendMessage = (msg: WsMessage) => client.send(JSON.stringify(msg));
+
+      if (ip === undefined) {
+        Logger.error('Unable to retrieve client ip, close connection');
+        sendMessage({ type: MessageType.Error, value: 'Ghostbuster' });
+        client.close();
+        return;
+      }
+
+      if (this.bannedIPs.includes(ip)) {
+        Logger.error('Banned IP, close connection');
+        sendMessage({
+          type: MessageType.Error,
+          value: 'Banned IP, too many failed login attempts',
+        });
+        client.close();
+        return;
+      }
+
+      this.clientIPMap[ip] = client;
+
+      client.on('close', () => delete this.clientIPMap[ip]);
+
+      client.on('message', (data) => {
+        try {
+          const message = JSON.parse(data as string);
+          this.messageHandler(message, sendMessage, ip, closeClient);
+        } catch (error) {
+          Logger.error(error.stack);
+        }
       });
+    });
 
-      this.server.on('connection', (client) => {
-        Logger.info('New websocket connection');
+    this.server = server;
+  }
 
-        client.on('message', (data) => console.log(data));
+  banIP(ip: string): void {
+    this.bannedIPs.push(ip);
+  }
 
-        const clientDataSender = (data: any) =>
-          client.send(JSON.stringify(data));
-        connectionSubject.next(clientDataSender);
-      });
+  onMessage(
+    messageHandler: (
+      message: WsMessage,
+      sendMessage: WsSender,
+      ip: string,
+      closeClient: () => void
+    ) => void
+  ): WsServer {
+    this.messageHandler = messageHandler;
+    return this;
+  }
+
+  send(message: WsMessage): void {
+    this.server.clients.forEach((client) => {
+      if (client.readyState === OPEN) {
+        client.send(JSON.stringify(message));
+      }
     });
   }
 }
 
-type WsDataSender = (data: object) => void;
+type WsSender = (message: WsMessage) => void;
+interface WsMessage {
+  type: MessageType;
+  value: any;
+}
+
+function noop(): void {}

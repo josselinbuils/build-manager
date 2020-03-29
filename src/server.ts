@@ -43,7 +43,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!isAuthenticated(ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('⛔️ Unauthorized, please login'),
+            value: chalk.red('✘ Unauthorized, please login'),
           });
           closeClient();
           return;
@@ -52,7 +52,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!repositories.includes(repos)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('❗ Unknown repository'),
+            value: chalk.red('✘ Unknown repository'),
           });
           closeClient();
           return;
@@ -81,7 +81,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!authenticate(password, ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('❗ Wrong password'),
+            value: chalk.red('✘ Wrong password'),
           });
           closeClient();
         } else {
@@ -100,7 +100,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
       default:
         sendMessage({
           type: MessageType.Error,
-          value: chalk.red('❗ Unknown command'),
+          value: chalk.red('✘ Unknown command'),
         }).then(closeClient);
     }
   }
@@ -135,7 +135,7 @@ ${chalk.bold(`⚙️ Builds ${repos}`)}`
     Builder.create(ssh)
       .onError(async (error) => {
         await dispatchLog(LogLevel.Error, chalk.red(error.message));
-        await dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
+        await dispatchLog(LogLevel.Error, chalk.red('\n✘ Fail'));
         buildDeferred.resolve();
       })
       .onComplete(async () => {

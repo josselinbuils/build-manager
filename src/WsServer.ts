@@ -58,7 +58,7 @@ export class WsServer {
         Logger.error('Banned IP, close connection');
         sendMessage({
           type: MessageType.Error,
-          value: chalk.red('⛔️ Banned IP, too many failed login attempts'),
+          value: chalk.red('✘ Banned IP, too many failed login attempts'),
         }).then(closeClient);
         return;
       }

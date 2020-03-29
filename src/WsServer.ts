@@ -39,12 +39,16 @@ export class WsServer {
 
       const ip = socket.remoteAddress;
       const closeClient = () => client.close();
-      const sendMessage = (msg: WsMessage) => client.send(JSON.stringify(msg));
+      const sendMessage = async (msg: WsMessage) =>
+        new Promise<void>((resolve) =>
+          client.send(JSON.stringify(msg), resolve as () => void)
+        );
 
       if (ip === undefined) {
         Logger.error('Unable to retrieve client ip, close connection');
-        sendMessage({ type: MessageType.Error, value: 'Ghostbuster' });
-        client.close();
+        sendMessage({ type: MessageType.Error, value: 'Ghostbuster' }).then(
+          closeClient
+        );
         return;
       }
 
@@ -53,8 +57,7 @@ export class WsServer {
         sendMessage({
           type: MessageType.Error,
           value: 'Banned IP, too many failed login attempts',
-        });
-        client.close();
+        }).then(closeClient);
         return;
       }
 
@@ -91,16 +94,24 @@ export class WsServer {
     return this;
   }
 
-  send(message: WsMessage): void {
+  async send(message: WsMessage): Promise<void> {
+    const sentPromises = [] as Promise<void>[];
+
     this.server.clients.forEach((client) => {
       if (client.readyState === OPEN) {
-        client.send(JSON.stringify(message));
+        sentPromises.push(
+          new Promise((resolve) =>
+            client.send(JSON.stringify(message), resolve as () => void)
+          )
+        );
       }
     });
+
+    await Promise.all(sentPromises);
   }
 }
 
-type WsSender = (message: WsMessage) => void;
+type WsSender = (message: WsMessage) => Promise<void>;
 interface WsMessage {
   type: MessageType;
   value: any;

@@ -44,14 +44,15 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
           sendMessage({
             type: MessageType.Error,
             value: 'Unauthorized, please login',
-          });
-          closeClient();
+          }).then(closeClient);
           return;
         }
 
         if (!repositories.includes(repos)) {
-          sendMessage({ type: MessageType.Error, value: 'Unknown repository' });
-          closeClient();
+          sendMessage({
+            type: MessageType.Error,
+            value: 'Unknown repository',
+          }).then(closeClient);
           return;
         }
 
@@ -69,17 +70,20 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
           sendMessage({
             type: MessageType.Info,
             value: 'Already logged in',
-          });
-          closeClient();
+          }).then(closeClient);
           return;
         }
 
         if (!authenticate(password, ip)) {
-          sendMessage({ type: MessageType.Error, value: 'Wrong password' });
+          sendMessage({
+            type: MessageType.Error,
+            value: 'Wrong password',
+          }).then(closeClient);
         } else {
-          sendMessage({ type: MessageType.Info, value: 'Login success' });
+          sendMessage({ type: MessageType.Info, value: 'Login success' }).then(
+            closeClient
+          );
         }
-        closeClient();
         break;
 
       case Command.Logs:
@@ -87,7 +91,9 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         break;
 
       default:
-        sendMessage({ type: MessageType.Error, value: 'Unknown command' });
+        sendMessage({ type: MessageType.Error, value: 'Unknown command' }).then(
+          closeClient
+        );
     }
   }
 );
@@ -137,11 +143,11 @@ ${chalk.bold(`⚙️ Builds ${repos}`)}`
   return buildDeferred.promise;
 }
 
-function dispatchLog(level: LogLevel, data: string): void {
+async function dispatchLog(level: LogLevel, data: string): Promise<void> {
   const log = { level, data, time: Date.now() };
   console.log(log.data.replace(/[\n\r]$/, ''));
   logs.push(log);
-  wsServer.send({ type: MessageType.Logs, value: [log] });
+  return wsServer.send({ type: MessageType.Logs, value: [log] });
 }
 
 function isAuthenticated(ip: string): boolean {

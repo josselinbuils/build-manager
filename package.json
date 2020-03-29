@@ -3,8 +3,15 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
-    "lint": "tslint -p tsconfig.json src/**/*.ts",
+    "lint": "tslint -p tsconfig.json",
+    "lint:staged": "exec-staged 'yarn lint' '\\.ts$'",
+    "prettier:staged": "exec-staged 'prettier --write' '\\.(js|ts)$'",
     "start": "ts-node --project tsconfig.json src/server.ts"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn prettier:staged && yarn lint:staged"
+    }
   },
   "dependencies": {
     "@types/node": "^13.9.5",
@@ -18,7 +25,13 @@
     "ws": "^7.2.3"
   },
   "devDependencies": {
+    "@josselinbuils/exec-staged": "^0.1.1",
     "@josselinbuils/tslint": "^5.1.0",
+    "husky": "^4.2.3",
+    "prettier": "^2.0.2",
     "tslint": "^6.1.0"
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
+    "add:staged": "exec-staged 'git add' '\\.(js|tsx?|scss)$'",
     "lint": "tslint -p tsconfig.json",
     "lint:staged": "exec-staged 'yarn lint' '\\.ts$'",
     "prettier:staged": "exec-staged 'prettier --write' '\\.(js|ts)$'",
@@ -10,7 +11,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn prettier:staged && yarn lint:staged"
+      "pre-commit": "yarn lint:staged && yarn prettier:staged && yarn add:staged"
     }
   },
   "dependencies": {

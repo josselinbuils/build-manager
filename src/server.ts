@@ -1,9 +1,7 @@
 import * as color from 'ansi-colors';
 import { validate } from 'jsonschema';
-
 import * as rawConfig from '../config.json';
 import * as configSchema from '../config.schema.json';
-
 import { BuildQueue } from './build-queue';
 import { Builder } from './builder';
 import { Config } from './config';

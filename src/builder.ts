@@ -1,7 +1,6 @@
 import * as color from 'ansi-colors';
 import { Observable, Subject } from 'rxjs';
 import { Client } from 'ssh2';
-
 import { SshConfig } from './config';
 
 const MAX_LINE_LENGTH = 500;

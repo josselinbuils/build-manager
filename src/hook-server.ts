@@ -1,6 +1,5 @@
 import * as githubhook from 'githubhook';
 import { Observable, Subject } from 'rxjs';
-
 import { HookConfig } from './config';
 import { Logger } from './logger';
 

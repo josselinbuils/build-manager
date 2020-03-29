@@ -1,6 +1,5 @@
 import { Observable, Subject } from 'rxjs';
 import { OPEN, Server } from 'ws';
-
 import { Logger } from './logger';
 
 export class WsServer {

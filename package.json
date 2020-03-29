@@ -7,18 +7,18 @@
     "start": "ts-node --project tsconfig.json src/server.ts"
   },
   "dependencies": {
-    "@types/node": "^11.9.6",
+    "@types/node": "^13.9.5",
     "ansi-colors": "^3.2.4",
-    "githubhook": "^1.9.1",
-    "jsonschema": "^1.2.0",
-    "rxjs": "^6.4.0",
-    "ssh2": "^0.8.2",
-    "ts-node": "^8.0.2",
-    "typescript": "^3.3.3333",
-    "ws": "^6.1.4"
+    "githubhook": "^1.9.3",
+    "jsonschema": "^1.2.5",
+    "rxjs": "^6.5.4",
+    "ssh2": "^0.8.9",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3",
+    "ws": "^7.2.3"
   },
   "devDependencies": {
-    "@josselinbuils/tslint": "^1.0.0",
-    "tslint": "^5.13.0"
+    "@josselinbuils/tslint": "^5.1.0",
+    "tslint": "^6.1.0"
   }
 }

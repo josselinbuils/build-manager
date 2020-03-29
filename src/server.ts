@@ -30,7 +30,7 @@ let logs = [] as Log[];
 HookServer.create(hook, repositories).onHook(build);
 
 const wsServer = WsServer.create(PORT_WS).onMessage(
-  ({ type, value }, sendMessage, ip, closeClient) => {
+  async ({ type, value }, sendMessage, ip, closeClient) => {
     if (type !== MessageType.Command) {
       return;
     }
@@ -41,18 +41,20 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         const repos = args[0];
 
         if (!isAuthenticated(ip)) {
-          sendMessage({
+          await sendMessage({
             type: MessageType.Error,
             value: 'Unauthorized, please login',
-          }).then(closeClient);
+          });
+          closeClient();
           return;
         }
 
         if (!repositories.includes(repos)) {
-          sendMessage({
+          await sendMessage({
             type: MessageType.Error,
             value: 'Unknown repository',
-          }).then(closeClient);
+          });
+          closeClient();
           return;
         }
 
@@ -60,29 +62,31 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
           ? BuildMode.Clean
           : BuildMode.Update;
 
-        build(repos, buildMode).then(closeClient);
+        await build(repos, buildMode);
+        closeClient();
         break;
 
       case Command.Login:
         const password = args[0];
 
         if (isAuthenticated(ip)) {
-          sendMessage({
+          await sendMessage({
             type: MessageType.Info,
             value: 'Already logged in',
-          }).then(closeClient);
+          });
+          closeClient();
           return;
         }
 
         if (!authenticate(password, ip)) {
-          sendMessage({
+          await sendMessage({
             type: MessageType.Error,
             value: 'Wrong password',
-          }).then(closeClient);
+          });
+          closeClient();
         } else {
-          sendMessage({ type: MessageType.Info, value: 'Login success' }).then(
-            closeClient
-          );
+          await sendMessage({ type: MessageType.Info, value: 'Login success' });
+          closeClient();
         }
         break;
 
@@ -113,7 +117,7 @@ async function build(
 
     logs = [];
 
-    dispatchLog(
+    await dispatchLog(
       LogLevel.Info,
       `\
  _         _ _    _
@@ -125,13 +129,13 @@ ${chalk.bold(`⚙️ Builds ${repos}`)}`
     );
 
     Builder.create(ssh)
-      .onError((error) => {
-        dispatchLog(LogLevel.Error, chalk.red(error.message));
-        dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
+      .onError(async (error) => {
+        await dispatchLog(LogLevel.Error, chalk.red(error.message));
+        await dispatchLog(LogLevel.Error, chalk.red('\n❌ Fail'));
         buildDeferred.resolve();
       })
-      .onComplete(() => {
-        dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
+      .onComplete(async () => {
+        await dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
         buildDeferred.resolve();
       })
       .onLog((log) => dispatchLog(LogLevel.Info, log))

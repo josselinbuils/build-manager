@@ -76,7 +76,6 @@ ${chalk.bold(`⚙️ Builds ${repos}`)}`
   Logger.info('Build manager server successfully started');
 }
 
-// tslint:disable-next-line
 start();
 
 interface Log {

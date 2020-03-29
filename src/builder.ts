@@ -94,7 +94,7 @@ export class Builder {
 
                 ssh.exec(command, (error, stream) => {
                   if (error) {
-                    subject.error(error);
+                    reject(error);
                     return;
                   }
                   stream
@@ -112,7 +112,6 @@ export class Builder {
           );
         });
 
-        // tslint:disable-next-line
         promise
           .then(() => subject.complete())
           .catch((error) => subject.error(error))

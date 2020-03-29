@@ -6,7 +6,6 @@ export class BuildQueue {
 
   enqueue(build: () => Promise<void>): void {
     if (!this.busy) {
-      // tslint:disable-next-line
       this.exec(build);
     } else {
       this.queue.push(build);

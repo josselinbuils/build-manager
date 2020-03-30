@@ -2,25 +2,32 @@
   "id": "/Config",
   "type": "object",
   "properties": {
+    "auth": {
+      "type": "object",
+      "properties": {
+        "password": { "type": "string" }
+      },
+      "required": ["password"]
+    },
     "hook": {
       "type": "object",
       "properties": {
-        "path": {"type": "string"},
-        "port": {"type": "number"},
-        "secret": {"type": "string"}
+        "path": { "type": "string" },
+        "port": { "type": "number" },
+        "secret": { "type": "string" }
       },
       "required": ["secret"]
     },
     "repositories": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": { "type": "string" }
     },
     "ssh": {
       "type": "object",
       "properties": {
-        "host": {"type": "string"},
-        "user": {"type": "string"},
-        "password": {"type": "string"}
+        "host": { "type": "string" },
+        "user": { "type": "string" },
+        "password": { "type": "string" }
       },
       "required": ["host", "user", "password"]
     }

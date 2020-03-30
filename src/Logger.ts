@@ -1,3 +1,5 @@
+import { green, red } from './utils/colors';
+
 export class Logger {
   static error(str: string): void {
     this.internalLog(LogLevel.Error, str);
@@ -12,20 +14,22 @@ export class Logger {
   }
 
   static internalLog(level: LogLevel, str: string): void {
-    let prefix = `\x1b[0m[${new Date().toDateString()} ${new Date().toLocaleTimeString()}] `;
+    let prefix = `[${new Date().toDateString()} ${new Date().toLocaleTimeString()}]`;
 
     switch (level) {
       case LogLevel.Error:
-        prefix = `${prefix}\x1b[91m[${level}]`;
+        prefix = `${prefix} ${red(level)}`;
         break;
+
       case LogLevel.Info:
-        prefix = `${prefix}\x1b[32m[${level}]\x1b[0m`;
+        prefix = `${prefix} [${green(level)}]`;
         break;
+
       default:
         throw new Error('Unknown level');
     }
 
-    console.log(`${prefix} ${str}\x1b[0m`);
+    console.log(`${prefix} ${str}`);
   }
 }
 

@@ -1,9 +1,11 @@
 import { Deferred } from '@josselinbuils/utils';
 import { validate } from 'jsonschema';
 import path from 'path';
+import { Authenticator } from './Authenticator';
 import { Builder, BuildMode } from './Builder';
 import { BuildQueue } from './BuildQueue';
 import configSchema from './config.schema.json';
+import { CODE_NOT_FOUND, CODE_UNAUTHORIZED, PORT_WS } from './constants';
 import { HookServer } from './HookServer';
 import { Config } from './interfaces';
 import { Logger, LogLevel } from './Logger';
@@ -11,101 +13,105 @@ import { hasOption } from './utils';
 import { bold, green, red } from './utils/colors';
 import { Command, MessageType, WsServer } from './WsServer';
 
-const AUTHENTICATION_DURATION_MS = 60 * 1000;
-const MAX_AUTHENTICATION_TENTATIVES_BY_IP = 3;
-const PORT_WS = 9001;
-
 Logger.info('Starts build manager server');
 
 const rawConfig = require(path.join(process.cwd(), 'config.json'));
 const config = validate(rawConfig, configSchema, { throwError: true })
   .instance as Config;
 
-const authentication = {} as {
-  [ip: string]: { authenticated: boolean; tentatives: number };
-};
-
-const { hook, repositories, ssh } = config;
+const { auth, hook, repositories, ssh } = config;
 let logs = [] as Log[];
 
 HookServer.create(hook, repositories).onHook(build);
 
-const wsServer = WsServer.create(PORT_WS).onMessage(
-  async ({ type, value }, sendMessage, ip, closeClient) => {
-    if (type !== MessageType.Command) {
-      return;
-    }
-    const { args, command } = value;
+const wsServer = WsServer.create(PORT_WS);
+const authenticator = Authenticator.create(wsServer.banIP, auth.password);
 
-    switch (command) {
-      case Command.Build:
-        const repos = args[0];
-
-        if (!isAuthenticated(ip)) {
-          await sendMessage({
-            type: MessageType.Error,
-            value: red('✘ Unauthorized, please login'),
-          });
-          closeClient();
-          return;
-        }
-
-        if (!repositories.includes(repos)) {
-          await sendMessage({
-            type: MessageType.Error,
-            value: red('✘ Unknown repository'),
-          });
-          closeClient();
-          return;
-        }
-
-        const buildMode = hasOption(args, 'clean')
-          ? BuildMode.Clean
-          : BuildMode.Update;
-
-        await build(repos, buildMode);
-        closeClient();
-        break;
-
-      case Command.Login:
-        const password = args[0];
-
-        if (isAuthenticated(ip)) {
-          await sendMessage({
-            type: MessageType.Info,
-            value: 'Already logged in',
-          });
-          closeClient();
-          return;
-        }
-
-        if (!authenticate(password, ip)) {
-          await sendMessage({
-            type: MessageType.Error,
-            value: red('✘ Wrong password'),
-          });
-          closeClient();
-        } else {
-          await sendMessage({
-            type: MessageType.Info,
-            value: green('✔ Login success'),
-          });
-          closeClient();
-        }
-        break;
-
-      case Command.Logs:
-        sendMessage({ type: MessageType.Logs, value: logs });
-        break;
-
-      default:
-        sendMessage({
-          type: MessageType.Error,
-          value: red('✘ Unknown command'),
-        }).then(closeClient);
-    }
+wsServer.onMessage(async ({ type, value }, sendMessage, ip, closeClient) => {
+  if (type !== MessageType.Command) {
+    return;
   }
-);
+  const { args, command } = value;
+
+  switch (command) {
+    case Command.Build: {
+      const { authToken } = value;
+      const repos = args[0];
+
+      if (!authenticator.isAuthenticated(ip, authToken)) {
+        await sendMessage({
+          type: MessageType.Error,
+          value: {
+            code: CODE_UNAUTHORIZED,
+            message: 'Unauthorized, please login',
+          },
+        });
+        closeClient();
+        return;
+      }
+
+      if (!repositories.includes(repos)) {
+        await sendMessage({
+          type: MessageType.Error,
+          value: {
+            code: CODE_NOT_FOUND,
+            message: 'Unknown repository',
+          },
+        });
+        closeClient();
+        return;
+      }
+
+      const buildMode = hasOption(args, 'clean')
+        ? BuildMode.Clean
+        : BuildMode.Update;
+
+      await build(repos, buildMode);
+      closeClient();
+      break;
+    }
+
+    case Command.Login: {
+      const password = args[0];
+      const authToken = authenticator.authenticate(password, ip);
+
+      if (authToken === undefined) {
+        await sendMessage({
+          type: MessageType.Error,
+          value: {
+            code: CODE_UNAUTHORIZED,
+            message: 'Wrong password',
+          },
+        });
+        closeClient();
+      } else {
+        await sendMessage({
+          type: MessageType.AuthToken,
+          value: authToken,
+        });
+        await sendMessage({
+          type: MessageType.Success,
+          value: 'Login success',
+        });
+        closeClient();
+      }
+      break;
+    }
+
+    case Command.Logs:
+      sendMessage({ type: MessageType.Logs, value: logs });
+      break;
+
+    default:
+      sendMessage({
+        type: MessageType.Error,
+        value: {
+          code: CODE_NOT_FOUND,
+          message: 'Unknown command',
+        },
+      }).then(closeClient);
+  }
+});
 
 const buildQueue = new BuildQueue();
 
@@ -157,33 +163,6 @@ async function dispatchLog(level: LogLevel, data: string): Promise<void> {
   console.log(log.data.replace(/[\n\r]$/, ''));
   logs.push(log);
   return wsServer.send({ type: MessageType.Logs, value: [log] });
-}
-
-function isAuthenticated(ip: string): boolean {
-  return authentication[ip]?.authenticated || false;
-}
-
-function authenticate(password: string, ip: string): boolean {
-  if (authentication[ip] === undefined) {
-    authentication[ip] = {
-      authenticated: false,
-      tentatives: 1,
-    };
-  } else {
-    authentication[ip].tentatives++;
-  }
-
-  if (password === ssh.password) {
-    authentication[ip].authenticated = true;
-    setTimeout(() => delete authentication[ip], AUTHENTICATION_DURATION_MS);
-    return true;
-  }
-
-  if (authentication[ip].tentatives >= MAX_AUTHENTICATION_TENTATIVES_BY_IP) {
-    wsServer.banIP(ip);
-  }
-
-  return false;
 }
 
 interface Log {

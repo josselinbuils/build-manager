@@ -1,6 +1,6 @@
 import WebSocket, { OPEN, Server } from 'ws';
+import { CODE_BAD_REQUEST, CODE_FORBIDDEN } from './constants';
 import { Logger } from './Logger';
-import { red } from './utils/colors';
 
 export enum Command {
   Build = 'build',
@@ -9,10 +9,11 @@ export enum Command {
 }
 
 export enum MessageType {
+  AuthToken = 'authToken',
   Command = 'command',
   Error = 'error',
-  Info = 'info',
   Logs = 'logs',
+  Success = 'success',
 }
 
 export class WsServer {
@@ -49,7 +50,10 @@ export class WsServer {
         Logger.error('Unable to retrieve client ip, close connection');
         sendMessage({
           type: MessageType.Error,
-          value: red('Ghostbuster 👻'),
+          value: {
+            code: CODE_BAD_REQUEST,
+            value: 'Ghostbuster 👻',
+          },
         }).then(closeClient);
         return;
       }
@@ -58,7 +62,10 @@ export class WsServer {
         Logger.error('Banned IP, close connection');
         sendMessage({
           type: MessageType.Error,
-          value: red('✘ Banned IP, too many failed login attempts'),
+          value: {
+            code: CODE_FORBIDDEN,
+            message: 'Banned IP, too many failed login attempts',
+          },
         }).then(closeClient);
         return;
       }
@@ -80,9 +87,9 @@ export class WsServer {
     this.server = server;
   }
 
-  banIP(ip: string): void {
+  banIP = (ip: string): void => {
     this.bannedIPs.push(ip);
-  }
+  };
 
   onMessage(
     messageHandler: (
@@ -114,6 +121,7 @@ export class WsServer {
 }
 
 type WsSender = (message: WsMessage) => Promise<void>;
+
 interface WsMessage {
   type: MessageType;
   value: any;

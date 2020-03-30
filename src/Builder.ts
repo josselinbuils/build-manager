@@ -1,6 +1,6 @@
-import chalk from 'chalk';
 import { Client } from 'ssh2';
 import { SSHConfig } from './interfaces';
+import { bold } from './utils/colors';
 
 const MAX_LINE_LENGTH = 500;
 
@@ -95,9 +95,7 @@ export class Builder {
           promise = promise.then(
             async () =>
               new Promise<void>((resolve, reject) => {
-                this.logHandler(
-                  `\n${chalk.bold(`[${index + 1}] ${name}`)}\n\n`
-                );
+                this.logHandler(`\n${bold(`[${index + 1}] ${name}`)}\n\n`);
 
                 ssh.exec(command, (error, stream) => {
                   if (error) {

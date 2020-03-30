@@ -4,7 +4,7 @@ COPY . build-manager
 
 WORKDIR build-manager
 
-ENV FORCE_COLOR=1
+ENV FORCE_COLOR=2
 
 RUN yarn install --production --frozen-lockfile && \
     yarn build

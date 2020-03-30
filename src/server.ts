@@ -1,5 +1,4 @@
 import { Deferred } from '@josselinbuils/utils';
-import chalk from 'chalk';
 import { validate } from 'jsonschema';
 import path from 'path';
 import { Builder, BuildMode } from './Builder';
@@ -9,6 +8,7 @@ import { HookServer } from './HookServer';
 import { Config } from './interfaces';
 import { Logger, LogLevel } from './Logger';
 import { hasOption } from './utils';
+import { bold, green, red } from './utils/colors';
 import { Command, MessageType, WsServer } from './WsServer';
 
 const AUTHENTICATION_DURATION_MS = 60 * 1000;
@@ -44,7 +44,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!isAuthenticated(ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('✘ Unauthorized, please login'),
+            value: red('✘ Unauthorized, please login'),
           });
           closeClient();
           return;
@@ -53,7 +53,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!repositories.includes(repos)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('✘ Unknown repository'),
+            value: red('✘ Unknown repository'),
           });
           closeClient();
           return;
@@ -82,13 +82,13 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
         if (!authenticate(password, ip)) {
           await sendMessage({
             type: MessageType.Error,
-            value: chalk.red('✘ Wrong password'),
+            value: red('✘ Wrong password'),
           });
           closeClient();
         } else {
           await sendMessage({
             type: MessageType.Info,
-            value: chalk.green('✔ Login success'),
+            value: green('✔ Login success'),
           });
           closeClient();
         }
@@ -101,7 +101,7 @@ const wsServer = WsServer.create(PORT_WS).onMessage(
       default:
         sendMessage({
           type: MessageType.Error,
-          value: chalk.red('✘ Unknown command'),
+          value: red('✘ Unknown command'),
         }).then(closeClient);
     }
   }
@@ -130,17 +130,17 @@ async function build(
 | '_ \\ || | | / _\` | | '  \\/ _\` | ' \\/ _\` / _\` / -_) '_|
 |_.__/\\_,_|_|_\\__,_| |_|_|_\\__,_|_||_\\__,_\\__, \\___|_|
                                           |___/
-${chalk.bold(`⚙️ Builds ${repos}`)}`
+${bold(`⚙️ Builds ${repos}`)}`
     );
 
     Builder.create(ssh)
       .onError(async (error) => {
-        await dispatchLog(LogLevel.Error, chalk.red(error.message));
-        await dispatchLog(LogLevel.Error, chalk.red('\n✘ Fail'));
+        await dispatchLog(LogLevel.Error, red(error.message));
+        await dispatchLog(LogLevel.Error, red('\n✘ Fail'));
         buildDeferred.resolve();
       })
       .onComplete(async () => {
-        await dispatchLog(LogLevel.Info, chalk.green('\n✔ Success'));
+        await dispatchLog(LogLevel.Info, green('\n✔ Success'));
         buildDeferred.resolve();
       })
       .onLog((log) => dispatchLog(LogLevel.Info, log))

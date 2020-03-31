@@ -31,12 +31,16 @@ wsServer.onMessage(async ({ type, value }, sendMessage, ip, closeClient) => {
   if (type !== MessageType.Command) {
     return;
   }
-  const { args, command } = value;
+  const { args, command } = value as {
+    authToken: string;
+    args: string[];
+    command: string;
+  };
 
   switch (command) {
     case Command.Build: {
       const { authToken } = value;
-      const repos = args[0];
+      const repos = args.filter((arg) => !arg.startsWith('-'))[0];
 
       if (!authenticator.isAuthenticated(ip, authToken)) {
         await sendMessage({

@@ -75,6 +75,7 @@ export class WsServer {
       client.on('close', () => delete this.clientIPMap[ip]);
 
       client.on('message', (data) => {
+        Logger.info(`Received message: ${data}`);
         try {
           const message = JSON.parse(data as string);
           this.messageHandler(message, sendMessage, ip, closeClient);

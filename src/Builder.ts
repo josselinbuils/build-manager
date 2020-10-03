@@ -51,7 +51,7 @@ export class Builder {
           },
           {
             name: 'Install dependencies',
-            command: `docker exec -t ${container} bash -c 'NODE_ENV=developement yarn install --frozen-lockfile'`,
+            command: `docker exec -t ${container} bash -c 'NODE_ENV=developement yarn install --emoji --frozen-lockfile --no-progress'`,
           },
           {
             name: 'Build',
@@ -60,7 +60,7 @@ export class Builder {
           },
           {
             name: 'Clean dependencies',
-            command: `docker exec -t ${container} bash -c 'yarn install --production --frozen-lockfile'`,
+            command: `docker exec -t ${container} bash -c 'yarn install --emoji --frozen-lockfile --no-progress --production'`,
           },
           {
             name: 'Restart container',

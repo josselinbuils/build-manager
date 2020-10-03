@@ -51,7 +51,7 @@ export class Builder {
           },
           {
             name: 'Install dependencies',
-            command: `docker exec -t ${container} bash -c 'yarn install --force --frozen-lockfile'`,
+            command: `docker exec -t ${container} bash -c 'rm -rf node_modules && yarn install --frozen-lockfile'`,
           },
           {
             name: 'Build',

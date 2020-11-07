@@ -59,10 +59,6 @@ export class Builder {
  || echo No build command found'`,
           },
           {
-            name: 'Clean dependencies',
-            command: `docker exec -t ${container} bash -c 'yarn install --emoji --frozen-lockfile --no-progress --production'`,
-          },
-          {
             name: 'Restart container',
             command: `docker restart ${container}`,
           },

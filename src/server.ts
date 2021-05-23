@@ -1,9 +1,9 @@
-import { Deferred } from '@josselinbuils/utils';
+import { Deferred } from '@josselinbuils/utils/Deferred';
+import { ExecQueue } from '@josselinbuils/utils/ExecQueue';
 import { validate } from 'jsonschema';
 import path from 'path';
 import { Authenticator } from './Authenticator';
 import { Builder, BuildMode } from './Builder';
-import { BuildQueue } from './BuildQueue';
 import configSchema from './config.schema.json';
 import { CODE_NOT_FOUND, CODE_UNAUTHORIZED, PORT_WS } from './constants';
 import { HookServer } from './HookServer';
@@ -117,7 +117,7 @@ wsServer.onMessage(async ({ type, value }, sendMessage, ip, closeClient) => {
   }
 });
 
-const buildQueue = new BuildQueue();
+const buildQueue = new ExecQueue();
 
 Logger.info('Build manager server successfully started');
 

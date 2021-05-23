@@ -4,14 +4,13 @@ import { Logger } from './Logger';
 
 export class HookServer {
   private hookHandler = (() => {}) as (repos: string) => void;
-  private readonly server: GithubHook;
 
   static create(config: HookConfig, repositories: string[]): HookServer {
     return new HookServer(config, repositories);
   }
 
   constructor(
-    private readonly config: HookConfig,
+    config: HookConfig,
     private readonly repositories: string[]
   ) {
     const server = new GithubHook({
@@ -29,8 +28,6 @@ export class HookServer {
         }
       })
       .listen();
-
-    this.server = server;
   }
 
   onHook(hookHandler: (repos: string) => void): HookServer {

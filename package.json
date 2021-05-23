@@ -9,11 +9,6 @@
     "start": "node dist/server.js",
     "start:dev": "concurrently --kill-others 'yarn build -w' 'nodemon dist/server.js'"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint:staged && yarn prettier:staged && yarn add:staged"
-    }
-  },
   "dependencies": {
     "@josselinbuils/utils": "^0.4.2",
     "chalk": "^4.1.1",

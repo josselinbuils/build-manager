@@ -6,7 +6,7 @@ WORKDIR build-manager
 
 ENV FORCE_COLOR=2
 
-RUN yarn install --production --frozen-lockfile && \
-    yarn build
+RUN yarn install --emoji --frozen-lockfile --no-progress && \
+    NODE_ENV=production yarn build
 
 CMD ["yarn", "start"]

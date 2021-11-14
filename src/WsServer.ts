@@ -1,4 +1,4 @@
-import WebSocket, { OPEN, Server } from 'ws';
+import WebSocket, { OPEN, WebSocketServer } from 'ws';
 import { CODE_BAD_REQUEST, CODE_FORBIDDEN } from './constants';
 import { Logger } from './Logger';
 
@@ -26,14 +26,14 @@ export class WsServer {
     ip: string,
     closeClient: () => void
   ) => void;
-  private readonly server: Server;
+  private readonly server: WebSocketServer;
 
   static create(port: number): WsServer {
     return new WsServer(port);
   }
 
   constructor(port: number) {
-    const server = new Server({ port }, () => {
+    const server = new WebSocketServer({ port }, () => {
       Logger.info(`WebSocket server is listening on port ${port}`);
     });
 
@@ -75,10 +75,11 @@ export class WsServer {
 
       client.on('close', () => delete this.clientIPMap[ip]);
 
-      client.on('message', (data) => {
-        Logger.info(`Received message: ${data}`);
+      client.on('message', (rawData) => {
         try {
-          const message = JSON.parse(data as unknown as string);
+          const data = rawData.toString();
+          Logger.info(`Received message: ${data}`);
+          const message = JSON.parse(data);
           this.messageHandler(message, sendMessage, ip, closeClient);
         } catch (error: any) {
           Logger.error(error.stack);

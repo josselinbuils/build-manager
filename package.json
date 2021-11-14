@@ -6,6 +6,7 @@
     "build": "rimraf dist && tsc",
     "lint": "eslint .",
     "pre-commit": "exec-staged",
+    "prepare": "husky install",
     "start": "node dist/server.js",
     "start:dev": "concurrently --kill-others 'yarn build -w' 'nodemon dist/server.js'"
   },

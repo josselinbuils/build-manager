@@ -1,5 +1,5 @@
 import chalk from 'chalk';
 
-export const bold = chalk.bold;
-export const green = chalk.green;
+export { bold, green } from 'chalk';
+
 export const red = chalk.keyword('red');

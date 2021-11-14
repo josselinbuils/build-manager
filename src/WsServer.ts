@@ -10,6 +10,7 @@ export enum Command {
 
 export enum MessageType {
   AuthToken = 'authToken',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   Command = 'command',
   Error = 'error',
   Logs = 'logs',
@@ -42,9 +43,9 @@ export class WsServer {
       const ip = socket.remoteAddress;
       const closeClient = () => client.close();
       const sendMessage = async (msg: WsMessage) =>
-        new Promise<void>((resolve) =>
-          client.send(JSON.stringify(msg), resolve as () => void)
-        );
+        new Promise<void>((resolve) => {
+          client.send(JSON.stringify(msg), resolve as () => void);
+        });
 
       if (ip === undefined) {
         Logger.error('Unable to retrieve client ip, close connection');
@@ -77,9 +78,9 @@ export class WsServer {
       client.on('message', (data) => {
         Logger.info(`Received message: ${data}`);
         try {
-          const message = JSON.parse(data as string);
+          const message = JSON.parse(data as unknown as string);
           this.messageHandler(message, sendMessage, ip, closeClient);
-        } catch (error) {
+        } catch (error: any) {
           Logger.error(error.stack);
         }
       });
@@ -110,9 +111,9 @@ export class WsServer {
     this.server.clients.forEach((client) => {
       if (client.readyState === OPEN) {
         sentPromises.push(
-          new Promise((resolve) =>
-            client.send(JSON.stringify(message), resolve as () => void)
-          )
+          new Promise((resolve) => {
+            client.send(JSON.stringify(message), resolve as () => void);
+          })
         );
       }
     });

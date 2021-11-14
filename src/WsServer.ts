@@ -1,4 +1,4 @@
-import WebSocket, { OPEN, WebSocketServer } from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { CODE_BAD_REQUEST, CODE_FORBIDDEN } from './constants';
 import { Logger } from './Logger';
 
@@ -110,7 +110,7 @@ export class WsServer {
     const sentPromises = [] as Promise<void>[];
 
     this.server.clients.forEach((client) => {
-      if (client.readyState === OPEN) {
+      if (client.readyState === WebSocket.OPEN) {
         sentPromises.push(
           new Promise((resolve) => {
             client.send(JSON.stringify(message), resolve as () => void);

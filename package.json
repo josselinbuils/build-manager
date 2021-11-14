@@ -4,11 +4,11 @@
   "license": "MIT",
   "scripts": {
     "build": "rimraf dist && tsc",
+    "dev": "concurrently --kill-others 'yarn build -w' 'wait-on dist/server.js && nodemon dist/server.js'",
     "lint": "eslint .",
     "pre-commit": "exec-staged",
     "prepare": "husky install",
-    "start": "node dist/server.js",
-    "start:dev": "concurrently --kill-others 'yarn build -w' 'nodemon dist/server.js'"
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@josselinbuils/utils": "0.4.2",

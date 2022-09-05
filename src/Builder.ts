@@ -51,12 +51,11 @@ export class Builder {
           },
           {
             name: 'Install dependencies',
-            command: `docker exec -t ${container} bash -c 'NODE_ENV=developement yarn install --emoji --frozen-lockfile --no-progress'`,
+            command: `docker exec -t ${container} bash -c 'NODE_ENV=development yarn install --emoji --frozen-lockfile --no-progress'`,
           },
           {
             name: 'Build',
-            command: `docker exec -t ${container} bash -c '([[ $(npm run | grep "build$") ]] && yarn build)\
- || echo No build command found'`,
+            command: `docker exec -t ${container} bash -c 'yarn build'`,
           },
           {
             name: 'Restart container',
